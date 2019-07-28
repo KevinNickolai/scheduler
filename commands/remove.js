@@ -11,13 +11,14 @@
 		const eventId = parseInt(args.shift());
 
 		if (isNaN(eventId)) {
-			return message.author.send("The provided eventID was not a number.");
+			return message.reply("The provided eventID was not a number.");
 		}
 
-
-		schedule.removeEvent();
-
-
-		console.log(`removed event ${eventId}`);
+		if (schedule.removeEvent(eventId)) {
+			message.reply(`Removed event with ID ${eventId} from the schedule.`);
+			console.log(`removed event ${eventId}`);
+		} else {
+			message.reply(`No event with ID ${eventId} exists.`);
+		}
 	}
 }

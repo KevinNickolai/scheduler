@@ -70,11 +70,8 @@ Schedule.prototype.display = function () {
 
 	var scheduleString = "```";
 
-	this.events.forEach(event => {
-
-		console.log(event);
-
-		scheduleString += event.displayEvent() + '\n';
+	this.events.forEach((event, id) => {
+		scheduleString += `EventID ${id}: ` + event.displayEvent() + '\n';
 	});
 
 	scheduleString += "```";

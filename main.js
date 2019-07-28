@@ -6,7 +6,7 @@ const fs = require('fs');
 /**
  * Create the schedule and associate it with the client for later referencing
  * */
-const Schedule = require('./classes/s.js');
+const Schedule = require('./classes/schedule.js');
 client.schedule = new Schedule();
 
 /**
