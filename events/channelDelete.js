@@ -1,13 +1,23 @@
-﻿module.exports = (client, channel) => {
+﻿module.exports = async (client, channel) => {
 
-	//if(channel.guild
+	//if the channel has a set guild ID and matches that of a channel within a scheduler, we need to 
+	//recreate the channel for the scheduler.
+	if (channel.guildId && channel.id === client.scheduler.get(channel.guildId).channelId) {
 
-	//channel.guild
+		const guild = client.guilds.get(channel.guildId);
 
-	//const schedule = 
+		var schedulerChannel = await guild.createChannel('scheduler', { type: 'text' })
+				.then(function (result) {
+					console.log("Created scheduler channel on server id: " + guild.id);
+					return result;
+				}).catch(function (error) {
+					console.log("Failed to create scheduler channel on server id: " + guild.id);
+					throw error;
+				});
 
-	//was the channel deleted the schedule channel? if so, create a new schedule channel.
-	if (channel.id === client.schedule.channel) {
-		
+		schedulerChannel.guildId = guild.id;
+
+		client.scheduler.get(channel.guildId).channelId = schedulerChannel.id;
 	}
+
 }

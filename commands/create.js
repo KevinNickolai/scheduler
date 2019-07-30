@@ -80,13 +80,12 @@ module.exports = {
 		const serverId = message.guild.id;
 		const schedule = message.client.scheduler.get(serverId);
 
-		console.log(schedule);
+		//console.log(schedule);
 
 		var currentDate = new Date();
 
 		const eventName = args.shift();
 		const eventDay = args.shift();
-		//const eventTime = args.shift();
 
 		const eventDate = parseDate(currentDate, eventDay);
 

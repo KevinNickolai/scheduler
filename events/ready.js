@@ -9,8 +9,6 @@ module.exports = (client) => {
 
 	var schedulerMap = new Map();
 
-	console.log(`Logged in as ${client.user.tag}!`);
-
 	client.guilds.forEach(async (guild) => {
 
 		var schedulerChannel = guild.channels.find(channel => channel.name === schedulerChannelName);
@@ -26,9 +24,15 @@ module.exports = (client) => {
 				});
 		}
 
+		schedulerChannel.guildId = guild.id;
+
 		schedulerMap.set(guild.id,new Schedule(schedulerChannel.id));
 
 	});
 
 	client.scheduler = schedulerMap;
+
+	console.log(`Logged in as ${client.user.tag}!`);
+
+	console.log(`Schedulers initialized for ${client.guilds.size} servers.`);
 }
