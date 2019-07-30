@@ -9,6 +9,11 @@ module.exports = (client) => {
 
 	var schedulerMap = new Map();
 
+	/**
+	 * For every server that the bot is a part of, we would like to
+     * create a scheduling channel if not already existing, and then
+	 * create a mapping for each server to their own unique schedule.
+	 * */
 	client.guilds.forEach(async (guild) => {
 
 		var schedulerChannel = guild.channels.find(channel => channel.name === schedulerChannelName);

@@ -1,6 +1,6 @@
 module.exports = {
 	name: 'help',
-	aliases: ['commands', 'cmds'],
+	aliases: ['commands', 'cmds', '?'],
 	description: "Gives information on specific commands or lists all possible commands.",
 	usage: "<command name>",
 	execute(message,args){

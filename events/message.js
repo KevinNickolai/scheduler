@@ -9,6 +9,8 @@ module.exports = (client, message) => {
 		client.scheduler.get(message.guild.id).channelId !== message.channel.id) {
 		return;
 	}
+
+
 	//console.log(`message received: ${message.content}`);
 
 	//split up the message into arguments, with whitespace as the delimiter,

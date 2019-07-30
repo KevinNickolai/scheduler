@@ -55,7 +55,7 @@ function parseDate(date,day) {
 				break;
 		}
 
-
+	
 	} else if (dayInt < 0 || dayInt > 30) {
 		console.log('Invalid date given');
 		return;
@@ -72,10 +72,14 @@ module.exports = {
 	name: 'create',
 	aliases: ['add', 'cmds'],
 	description: "Add an event to the schedule.",
-	usage: "<command name> event-type event-name date time",
+	usage: "event-type event-name date time",
 	args: true,
 	serverUnique: true,
 	execute(message, args) {
+
+		if (args.length < 2) {
+			return message.author.send(`Create requires at least two arguments of event-name and date.`);
+		}
 
 		const serverId = message.guild.id;
 		const schedule = message.client.scheduler.get(serverId);
@@ -86,6 +90,7 @@ module.exports = {
 
 		const eventName = args.shift();
 		const eventDay = args.shift();
+		const eventTime = args.shift();
 
 		const eventDate = parseDate(currentDate, eventDay);
 
