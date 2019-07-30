@@ -4,7 +4,12 @@ module.exports = (client, message) => {
 
 	if (!message.content.startsWith(prefix) || message.author.bot) return;
 
-	console.log(`message received: ${message.content}`);
+	//making sure the message is in the correct channel
+	if (message.guild &&
+		client.scheduler.get(message.guild.id).channelId !== message.channel.id) {
+		return;
+	}
+	//console.log(`message received: ${message.content}`);
 
 	//split up the message into arguments, with whitespace as the delimiter,
 	//while also removing the command prefix from the message
@@ -28,6 +33,12 @@ module.exports = (client, message) => {
 		//in question has a usage property.
 		return user.send("You must provide arguments for the " + commandName + " command.");
 	}
+
+	//checking for a server unique command, which requires the command be sent in the server to schedule.
+	if (!message.guild && command.serverUnique)
+		return message.author.send(
+			"This bot supports multiple servers; use the scheduler in the server you would like to schedule events for."
+		);
 
 	try {
 		command.execute(message, args);

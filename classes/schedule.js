@@ -6,8 +6,9 @@ const maxEvents = 100;
  * maintain all of the events within the schedule.
  * */
 class Schedule {
-	constructor() {
+	constructor(channelId) {
 		this.events = new Map();
+		this.channelId = channelId;
 	}
 }
 
@@ -26,6 +27,8 @@ Schedule.prototype.addEvent = function (event) {
 
 	this.events.set(eventId, event);
 
+	this.setEventTimer(eventId);
+
 	console.log(`Added event with ID ${eventId} to the schedule.`);
 
 	return eventId;
@@ -37,7 +40,68 @@ Schedule.prototype.addEvent = function (event) {
  * @returns {boolean} true if removed successfully, false otherwise
  */
 Schedule.prototype.removeEvent = function (eventID) {
+
+	if (this.events.has(eventID)) {
+		this.events.get(eventID).clearEventTimeout();
+	}
+
 	return this.events.delete(eventID);
+}
+
+/**
+ * join an event on the schedule
+ * @param {Discord.User} user The discord user that is joining the event
+ * @param {number} eventId The ID of the event that the user is joining
+ */
+Schedule.prototype.joinEvent = function (user, eventId) {
+
+	const event = this.events.get(eventId);
+
+	//check the existence of the event
+	if (event) {
+		event.addUser(user);
+	} else {
+		user.send(`Event with ID ${eventId} does not exist.`);
+	}
+}
+
+/**
+ * Leave an event on the schedule
+ * @param {Discord.User} user The user attempting to leave the event
+ * @param {number} eventId The ID of the event to leave
+ */
+Schedule.prototype.leaveEvent = function (user, eventId) {
+	const event = this.events.get(eventId);
+
+	if (event) {
+		event.removeUser(user);
+	} else {
+		user.send(`Event with ID ${eventId} does not exist.`);
+	}
+}
+
+Schedule.prototype.setEventTimer = function (eventId) {
+
+	const event = this.events.get(eventId);
+
+	const timeToWait = event.date.getTime() - Date.now();
+
+	if (timeToWait <= 0) {
+		//do immediately
+		this.fireEvent(eventId);
+
+	} else if (timeToWait <= 86400000) {
+		//settimeout
+
+		const that = this;
+
+		event.timeout = setTimeout(function () {
+			that.fireEvent(eventId)
+		}, timeToWait);
+
+	} else {
+		//wait
+	}
 }
 
 /**
@@ -68,6 +132,10 @@ Schedule.prototype.generateEventId = function () {
  * */
 Schedule.prototype.display = function () {
 
+	if (this.events.size === 0) {
+		return "```The schedule is currently empty.```";
+	}
+
 	var scheduleString = "```";
 
 	this.events.forEach((event, id) => {
@@ -76,6 +144,15 @@ Schedule.prototype.display = function () {
 
 	scheduleString += "```";
 	return scheduleString;
+}
+
+/**
+ * Fire the event of the given eventId
+ * @param {number} eventId The ID associate to the event in the schedule
+ */
+Schedule.prototype.fireEvent = function (eventId) {
+	this.events.get(eventId).fire();
+	this.removeEvent(eventId);
 }
 
 module.exports = Schedule;

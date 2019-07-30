@@ -8,7 +8,6 @@ class ScheduleEvent {
 	 * constructor for a ScheduleEvent
 	 * @param {string} name The name of the event
 	 * @param {Date} date The date of the event
-	 * @param {string} time The time of the event 
 	 */
 	constructor(name = 'default event name', date = new Date()) {
 		if (new.target === ScheduleEvent) {
@@ -21,20 +20,47 @@ class ScheduleEvent {
 
 		this.name = name;
 		this.date = date;
+		this.timeout;
 
-		this.users = [];
+		this.users = new Map();
 	}
 }
 
-ScheduleEvent.prototype.AddUser = function () {
+/**
+ * Add a user to the event
+ * @param {Discord.User} user The discord user to add to the event
+ */
+ScheduleEvent.prototype.addUser = function (user) {
 
+	//if the user attempting to join isn't already in the event
+	if (!this.users.has(user.id)) {
+		this.users.set(user.id, user);
+		user.send(`You have joined event ${this.name}.`);
+	} else {
+		user.send(`You've already joined event ${this.name}!`);
+	}
 }
 
-ScheduleEvent.prototype.RemoveUser = function () {
+/**
+ * Remove a user from the event.
+ * @param {Discord.User} user The user attempting to leave the event
+ */
+ScheduleEvent.prototype.removeUser = function (user) {
+	const success = this.users.delete(user.id);
 
+	success ? user.send(`You have left event ${this.name}.`) : user.send(`You didn't join event ${this.name}!`);
 }
 
-ScheduleEvent.prototype.Fire = function () {
+ScheduleEvent.prototype.clearEventTimeout = function () {
+	if (this.timeout) {
+		clearTimeout(this.timeout);
+	}
+}
+
+/**
+ * Fire the event to start it
+ * */
+ScheduleEvent.prototype.fire = function () {
 	this.users.forEach(user => {
 		user.send(`Event ${this.name} fired!`);
 	});

@@ -3,8 +3,10 @@
 	aliases: ['schedule', 'show', 'events'],
 	description: "Display the schedule.",
 	usage: "<command name>",
+	serverUnique: true,
 	execute(message, args) {
-		const { schedule } = message.client;
+		const serverId = message.guild.id;
+		const schedule = message.client.scheduler.get(serverId);
 
 		message.reply(schedule.display());
 	}

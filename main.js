@@ -4,12 +4,6 @@ const config = require('./config.js');
 const fs = require('fs');
 
 /**
- * Create the schedule and associate it with the client for later referencing
- * */
-const Schedule = require('./classes/schedule.js');
-client.schedule = new Schedule();
-
-/**
  * Promisify directory reading, then create event handling 
  * for all defined events, as well as creating the command list.
  */

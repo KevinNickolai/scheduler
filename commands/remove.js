@@ -4,9 +4,11 @@
 	description: "Remove an event from the schedule.",
 	usage: "<command name> eventID",
 	args: true,
+	serverUnique: true,
 	execute(message, args) {
 
-		const { schedule } = message.client;
+		const serverId = message.guild.id;
+		const schedule = message.client.scheduler.get(serverId);
 
 		const eventId = parseInt(args.shift());
 
