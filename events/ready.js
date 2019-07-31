@@ -1,4 +1,4 @@
-const schedulerChannelName = 'scheduler';
+const schedulerChannelName = 'events';
 
 /**
  * Create the schedule and associate it with the client for later referencing

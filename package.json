@@ -16,6 +16,7 @@
   "dotenv": "^8.0.0"
  },
  "devDependencies": {
+  "mocha": "^6.2.0",
   "nodemon": "^1.19.1"
  }
 }

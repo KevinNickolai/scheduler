@@ -6,7 +6,7 @@
 
 		const guild = client.guilds.get(channel.guildId);
 
-		var schedulerChannel = await guild.createChannel('scheduler', { type: 'text' })
+		var schedulerChannel = await guild.createChannel('events', { type: 'text' })
 				.then(function (result) {
 					console.log("Created scheduler channel on server id: " + guild.id);
 					return result;
