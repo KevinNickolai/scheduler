@@ -6,16 +6,18 @@
  "scripts": {
   "start": "node main.js",
   "dev": "nodemon main.js",
-  "test": "echo \"Error: no test specified\" && exit 1"
+  "test": "mocha ./tests"
  },
  "author": "Kevin Nickolai",
  "license": "ISC",
  "dependencies": {
   "datejs": "^1.0.0-rc3",
   "discord.js": "^11.5.1",
-  "dotenv": "^8.0.0"
+  "dotenv": "^8.0.0",
+  "mysql": "^2.17.1"
  },
  "devDependencies": {
+  "chai": "^4.2.0",
   "mocha": "^6.2.0",
   "nodemon": "^1.19.1"
  }

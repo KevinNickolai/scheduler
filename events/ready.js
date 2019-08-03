@@ -37,7 +37,11 @@ module.exports = (client) => {
 
 	client.scheduler = schedulerMap;
 
-	console.log(`Logged in as ${client.user.tag}!`);
+	if (client.user) {
+		console.log(`Logged in as ${client.user.tag}!`);
+	}
+
+	//console.log(client.guilds);
 
 	console.log(`Schedulers initialized for ${client.guilds.size} servers.`);
 }
