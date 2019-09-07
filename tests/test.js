@@ -17,7 +17,7 @@ describe('init', () => {
 		testGuild2 = client.guilds.get('606933327295021057');
 	});
 
-	it('verifies server settings beforehand', () => {
+	it('verifies server settings beforehand', function() {
 		assert.property(client, 'guilds');
 		assert.lengthOf(client.guilds, 2);
 
@@ -39,7 +39,7 @@ describe('init', () => {
 		});
 	});
 
-	it('test message', () => {
+	it('test message', async function () {
 		assert.property(testGuild1, 'channels');
 
 		/*
@@ -52,11 +52,18 @@ describe('init', () => {
 		const correctChannel = testGuild1.channels.get(correctChannelId);
 		const wrongChannel = testGuild2.channels.get(wrongChannelId);
 
-		//console.log(testGuild1.channels);
-		//const correctChannel = client.guilds.get(
-		const message = correctChannel.messages.get('607039502636154961');
-		console.log(correctChannel.messages);
-		console.log(client.emit('message', message));
+        await correctChannel.fetchMessage('607039502636154961')
+            .then(message => {
+                client.emit('message',message);
+            })
+            .catch((error) => {
+                console.log(error);
+                assert.isTrue(false); //< fail the test here, if error getting message
+            });
+
+
+		//console.log(correctChannel.messages);
+		//console.log(client.emit('message', message));
 	});
 
 	after(async () => {
