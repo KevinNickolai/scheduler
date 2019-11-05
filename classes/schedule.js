@@ -155,4 +155,16 @@ Schedule.prototype.fireEvent = function (eventId) {
 	this.removeEvent(eventId);
 }
 
+/**
+ * Get the number of events currently in the schedule
+ * */
+Schedule.prototype.eventCount = function () {
+	return this.events.size;
+}
+
+Schedule.prototype.clearEvents = function () {
+	this.events.clear();
+}
+
+
 module.exports = Schedule;

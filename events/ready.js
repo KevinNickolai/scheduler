@@ -41,7 +41,5 @@ module.exports = (client) => {
 		console.log(`Logged in as ${client.user.tag}!`);
 	}
 
-	//console.log(client.guilds);
-
 	console.log(`Schedulers initialized for ${client.guilds.size} servers.`);
 }

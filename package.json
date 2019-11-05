@@ -6,7 +6,8 @@
  "scripts": {
   "start": "node main.js",
   "dev": "nodemon main.js",
-  "test": "mocha ./tests"
+  "test": "mocha -w ./tests",
+  "testDebug": "mocha -R list"
  },
  "author": "Kevin Nickolai",
  "license": "ISC",

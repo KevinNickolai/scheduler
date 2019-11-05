@@ -71,11 +71,11 @@ function createMessage(content, channel, guildId = '606933279060393984', prefix 
 		}, client)
 }
 
-describe('Create Command', () => {
+describe('Test Message Event', () => {
 
-    before(async () => {
-        await client.login(config.testBotToken);
-        testGuild1 = client.guilds.get('606933279060393984');
+	before(async () => {
+		await client.login(config.testBotToken);
+		testGuild1 = client.guilds.get('606933279060393984');
 		testGuild2 = client.guilds.get('606933327295021057');
 
 		/*
@@ -87,71 +87,45 @@ describe('Create Command', () => {
 
 		correctChannel = testGuild1.channels.get(correctChannelId);
 		wrongChannel = testGuild2.channels.get(wrongChannelId);
-    });
 
-    it('verifies server settings beforehand', function () {
-        assert.property(client, 'guilds');
-        assert.lengthOf(client.guilds, 2);
+		assert.property(client, 'guilds');
+		assert.lengthOf(client.guilds, 2);
 
-        //keys of the two test servers the bot is located in
-        assert.hasAllKeys(client.guilds, [testGuild1.id, testGuild2.id]);
+		//keys of the two test servers the bot is located in
+		assert.hasAllKeys(client.guilds, [testGuild1.id, testGuild2.id]);
 
-        //assert the bot's user ID is correct
-        assert.isTrue(client.user.id === '606933041553866775');
+		//assert the bot's user ID is correct
+		assert.isTrue(client.user.id === '606933041553866775');
 
-        client.guilds.forEach((guild) => {
+		client.guilds.forEach((guild) => {
 
-            assert.property(guild, 'members');
-            assert.lengthOf(guild.members, 2);
+			assert.property(guild, 'members');
+			assert.lengthOf(guild.members, 2);
 
-            assert.hasAllKeys(guild.members,
-                ['145786944297631745',		//< User to interact with test messages
-                    '606933041553866775']);	//< the bot running on the server
+			assert.hasAllKeys(guild.members,
+				['145786944297631745',		//< User to interact with test messages
+					'606933041553866775']);	//< the bot running on the server
 
-        });
-    });
+		});
+	});
 
-    it('Test emitted message creation', async function () {
+	it('Test emitted message creation', async function () {
 		try {
 			const testMessage = createMessage('create event 1', correctChannel);
-        } catch (error) {
-            console.log(error);
-        }
-    });
+		} catch (error) {
+			console.log(error);
+		}
+	});
 
 	it('Test message emission', async function () {
 		const correctMessage = createMessage('create event 1', correctChannel);
 		client.emit('message', correctMessage);
 	});
 
-	it('Create basic event', async function () {
-
-		const schedule = client.scheduler.get(correctChannel.guildId);
-
-		console.log(schedule.eventCount());
-
-		assert.strictEqual(schedule.eventCount(), 0);
-
-		const createEventMessage = createMessage('create event 1', correctChannel);
-		client.emit('message', createEventMessage);
-
-		assert.strictEqual(schedule.eventCount(), 1);
+	after(function () {
+		//TODO: reset server settings to their defaults; remove channels as necessary
+		//process.exit();
 	});
-
-	it('Fail basic event creation', async function () {
-		const createEventFailMessage = createMessage('create', correctChannel);
-		client.emit('message', createEventFailMessage);
-	});
-
-	afterEach(function () {
-		client.scheduler.forEach((schedule) => {
-			schedule.clearEvents();
-		});
-	});
-
-    after(function () {
-        //TODO: reset server settings to their defaults; remove channels as necessary
-        //process.exit();
-    });
 });
 
+	
