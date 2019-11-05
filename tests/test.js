@@ -24,9 +24,6 @@ before(async () => {
 
 	assert.hasAllKeys(testGuild1.channels, [correctChannelId, wrongChannelId]);
 
-	correctChannel = testGuild1.channels.get(correctChannelId);
-	wrongChannel = testGuild2.channels.get(wrongChannelId);
-
 	assert.property(client, 'guilds');
 	assert.lengthOf(client.guilds, 2);
 
