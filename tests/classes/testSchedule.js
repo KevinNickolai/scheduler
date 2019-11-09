@@ -142,7 +142,45 @@ module.exports = (client, channelId) => {
 			});
 		});
 
+		describe('#joinEvent()', function () {
 
+			const schedule = new scheduleClass(channelId);
+
+			//an event one day ahead of the current date
+			const eventDate = new Date();
+			eventDate.setDate(eventDate.getDate() + 1);
+
+			var event;
+
+			const user = {
+				id: '145786944297631745',
+				username: 'Aug',
+				discriminator: '3876',
+				avatar: '440d4e25dfb2a9d72b062cb40827a6c9',
+				bot: false,
+			}
+
+			var eventId;
+
+			beforeEach(function () {
+
+				//create a new event 
+				event = new autofireEventClass('test-event', eventDate);
+
+				eventId = schedule.addEvent(event);
+			});
+
+			it('joins a single event for a given user', function () {
+
+				assert.lengthOf(
+
+			});
+
+			afterEach(function () {
+				schedule.clearEvents();
+			});
+
+		});
 	});
 
 }
