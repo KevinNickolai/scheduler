@@ -29,7 +29,7 @@ Schedule.prototype.addEvent = function (event) {
 
 	this.setEventTimer(eventId);
 
-	console.log(`Added event with ID ${eventId} to the schedule.`);
+	//console.log(`Added event with ID ${eventId} to the schedule.`);
 
 	return eventId;
 }
@@ -54,6 +54,8 @@ Schedule.prototype.removeEvent = function (eventID) {
  * @param {number} eventId The ID of the event that the user is joining
  */
 Schedule.prototype.joinEvent = function (user, eventId) {
+
+	console.log(user);
 
 	const event = this.events.get(eventId);
 
@@ -117,6 +119,7 @@ Schedule.prototype.isFull = function () {
  * @returns {number} the generated event ID
  * */
 Schedule.prototype.generateEventId = function () {
+	
 	var randomId;
 
 	do {
@@ -162,9 +165,15 @@ Schedule.prototype.eventCount = function () {
 	return this.events.size;
 }
 
+/**
+ * Clear the schedule of all events
+ * */
 Schedule.prototype.clearEvents = function () {
 	this.events.clear();
 }
 
+Schedule.prototype.maxEvents = function () {
+	return maxEvents;
+}
 
 module.exports = Schedule;

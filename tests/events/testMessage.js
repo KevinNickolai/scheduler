@@ -1,131 +1,113 @@
-﻿const Discord = require('discord.js');
-
+﻿const newMessage = require('../instantiateMessage.js');
 const chai = require('chai');
 
 const assert = chai.assert;
 
-const client = require('../client.js');
-const config = require('../config.js');
+module.exports = (client, correctChannel, wrongChannel) => {
 
-var testGuild1;
-var testGuild2;
+	describe('Test Message Event', () => {
 
-const correctChannelId = '606934634487611412';
-const wrongChannelId = '606985847127932977';
+		const schedule = client.scheduler.get(correctChannel.guildId);
+		const createEventContent = 'create event 1';
+		client.messageError = '';
 
-var correctChannel;
-var wrongChannel;
+		/**
+		 * Testing the creation of the spoofed message
+		 */
+		it('message creation', async function () {
+			try {
+				const testMessage = newMessage(createEventContent, client, correctChannel);
+			} catch (error) {
+				assert.fail(error);
+				console.log(error);
+			}
+		});
 
-/**
- * Create a fake discord message, in order to emit it through the Discord.Client for testing purposes
- * 
- * @param {string} content The content of the message, to test commands
- * @param {Discord.Channel} channel The channel of the emulated message
- * @param {string} guildId the ID of the guild to emulate the message in
- * @param {boolean} prefix Use the correct prefix for bot command messages
- */
-function createMessage(content, channel, guildId = '606933279060393984', prefix = true) {
+		/**
+		 * Assure the client is emitting messages appropriately
+		 */
+		it('successful message emission', async function () {
+			//no events in the schedule
+			assert.strictEqual(schedule.eventCount(), 0);
 
-	//add prefix before the messages
-	if (prefix) {
-		content = config.prefix + content;
-	}
+			const correctMessage = newMessage(createEventContent, client, correctChannel);
 
-	return new Discord.Message(channel,
-		{
-			type: 0,
-			tts: false,
-			timestamp: '2019-09-23T23:51:38.574000+00:00',
-			pinned: false,
-			nonce: '625841747506757632',
-			mentions: [],
-			mention_roles: [],
-			mention_everyone: false,
-			member:
-			{
-				roles:
-					['542158163235831826',
-						'612827457724350494',
-						'542147772942385159'],
-				premium_since: null,
-				nick: null,
-				mute: false,
-				joined_at: '2019-02-06T15:07:18.043000+00:00',
-				hoisted_role: null,
-				deaf: false
-			},
-			id: '625841740758384650',
-			embeds: [],
-			edited_timestamp: null,
-			content: content,
-			channel_id: channel.id,
-			author:
-			{
-				username: 'Aug',
-				id: '145786944297631745',
-				discriminator: '3876',
-				avatar: '440d4e25dfb2a9d72b062cb40827a6c9'
-			},
-			attachments: [],
-			guild_id: guildId
-		}, client)
-}
+			//client.emit is true if there is listener(s) for the event
+			assert.isTrue(client.emit('message', correctMessage));
 
-describe('Test Message Event', () => {
+			//event successfully added
+			assert.strictEqual(schedule.eventCount(), 1);
+		});
 
-	before(async () => {
-		await client.login(config.testBotToken);
-		testGuild1 = client.guilds.get('606933279060393984');
-		testGuild2 = client.guilds.get('606933327295021057');
+		/**
+		 * Fails to process message when a message has no prefix
+		 */
+		it('deny message with no prefix', function () {
+			assert.strictEqual(schedule.eventCount(), 0);
 
-		/*
-		 * Checking channel existences, for message purposes
-		 **/
-		assert.property(testGuild1, 'channels');
+			const noPrefixMessage =
+				newMessage(
+					createEventContent,
+					client,
+					correctChannel,
+					correctChannel.guildId,
+					false);
 
-		assert.hasAllKeys(testGuild1.channels, [correctChannelId, wrongChannelId]);
+			client.emit('message', noPrefixMessage);
 
-		correctChannel = testGuild1.channels.get(correctChannelId);
-		wrongChannel = testGuild2.channels.get(wrongChannelId);
+			assert.strictEqual(schedule.eventCount(), 0);
 
-		assert.property(client, 'guilds');
-		assert.lengthOf(client.guilds, 2);
+		});
 
-		//keys of the two test servers the bot is located in
-		assert.hasAllKeys(client.guilds, [testGuild1.id, testGuild2.id]);
+		/**
+		 * Fail to process message in an incorrect channel
+		 */
+		it('deny message in wrong guild channel', function () {
 
-		//assert the bot's user ID is correct
-		assert.isTrue(client.user.id === '606933041553866775');
+			assert.strictEqual(schedule.eventCount(), 0);
 
-		client.guilds.forEach((guild) => {
+			const wrongChannelMessage = newMessage(createEventContent, client, wrongChannel);
+			client.emit('message', wrongChannelMessage);
 
-			assert.property(guild, 'members');
-			assert.lengthOf(guild.members, 2);
+			assert.strictEqual(schedule.eventCount(), 0);
+		});
 
-			assert.hasAllKeys(guild.members,
-				['145786944297631745',		//< User to interact with test messages
-					'606933041553866775']);	//< the bot running on the server
+		it('deny message with no valid command', function () {
+			const noCommandMessage = newMessage('notacommand', client, correctChannel);
 
+			//the error given to the client when a message command does not exist
+			noCommandError = "No command 'notacommand' exists.";
+
+			//check the error message isn't the command error before hand
+			assert.notStrictEqual(client.messageError, noCommandError);
+
+			client.emit('message', noCommandMessage);
+
+			assert.strictEqual(client.messageError, noCommandError);
+		});
+
+		it('deny message lacking arguments for command', function () {
+
+			const noArgMessage = newMessage('create', client, correctChannel);
+
+			noArgError = "You must provide arguments for the create command.";
+
+			//check error message beforehand to verify no arg error already exists
+			assert.notStrictEqual(client.messageError, noArgError);
+
+			client.emit('message', noArgMessage);
+
+			assert.strictEqual(client.messageError, noArgError);
+
+		});
+
+		it('deny server unique message in DM');
+
+		afterEach(function () {
+			client.scheduler.forEach((schedule) => {
+				schedule.clearEvents();
+			});
 		});
 	});
 
-	it('Test emitted message creation', async function () {
-		try {
-			const testMessage = createMessage('create event 1', correctChannel);
-		} catch (error) {
-			console.log(error);
-		}
-	});
-
-	it('Test message emission', async function () {
-		const correctMessage = createMessage('create event 1', correctChannel);
-		client.emit('message', correctMessage);
-	});
-
-	after(function () {
-		//TODO: reset server settings to their defaults; remove channels as necessary
-		//process.exit();
-	});
-});
-
-	
+}

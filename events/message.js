@@ -26,14 +26,24 @@ module.exports = (client, message) => {
 
 	if (!command) {
 		//console.log("No command '" + commandName + "' exists.");
-		return user.send("No command '" + commandName + "' exists.");
+
+		const commandError = "No command '" + commandName + "' exists.";
+
+		client.messageError = commandError
+
+		return user.send(commandError);
 	}
 
 	//Checking for arguments if a command requires arguments to be present
 	if (command.args && !args.length) {
 		//TODO: Add potential check here for existence of a usage help prompt, if the command
 		//in question has a usage property.
-		return user.send("You must provide arguments for the " + commandName + " command.");
+
+		const argError = "You must provide arguments for the " + commandName + " command."
+
+		client.messageError = argError 
+
+		return user.send(argError);
 	}
 
 	//checking for a server unique command, which requires the command be sent in the server to schedule.

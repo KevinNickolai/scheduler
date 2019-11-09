@@ -78,7 +78,11 @@ module.exports = {
 	execute(message, args) {
 
 		if (args.length < 2) {
-			return message.author.send(`Create requires at least two arguments of event-name and date.`);
+
+			const argError = `Create requires at least two arguments of event-name and date.`;
+
+			message.client.messageError = argError;
+			return message.author.send(argError);
 		}
 
 		const serverId = message.guild.id;

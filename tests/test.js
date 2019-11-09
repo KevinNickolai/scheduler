@@ -7,45 +7,80 @@ const assert = chai.assert;
 const client = require('../client.js');
 const config = require('../config.js');
 
+const correctChannelId = '606934634487611412';
+const wrongChannelId = '606985847127932977';
+
 var testGuild1;
 var testGuild2;
+var correctChannel;
+var wrongChannel;
 
-//Before any test cases, use root suite level describe block
-//to set up the client for test cases
-before(async () => {
-	await client.login(config.testBotToken);
-	testGuild1 = client.guilds.get('606933279060393984');
-	testGuild2 = client.guilds.get('606933327295021057');
+before(function (done) {
 
-	/*
-	 * Checking channel existences, for message purposes
-	 **/
-	assert.property(testGuild1, 'channels');
+	this.timeout(10000);
 
-	assert.hasAllKeys(testGuild1.channels, [correctChannelId, wrongChannelId]);
+	client.login(config.testBotToken)
+		.then(result => {
+			testGuild1 = client.guilds.get('606933279060393984');
+			testGuild2 = client.guilds.get('606933327295021057');
 
-	assert.property(client, 'guilds');
-	assert.lengthOf(client.guilds, 2);
+			/*
+			* Checking channel existences, for message purposes
+			**/
+			assert.property(testGuild1, 'channels');
 
-	//keys of the two test servers the bot is located in
-	assert.hasAllKeys(client.guilds, [testGuild1.id, testGuild2.id]);
+			assert.hasAllKeys(testGuild1.channels, [correctChannelId, wrongChannelId]);
 
-	//assert the bot's user ID is correct
-	assert.isTrue(client.user.id === '606933041553866775');
+			assert.property(client, 'guilds');
+			assert.lengthOf(client.guilds, 2);
 
-	client.guilds.forEach((guild) => {
+			//keys of the two test servers the bot is located in
+			assert.hasAllKeys(client.guilds, [testGuild1.id, testGuild2.id]);
 
-		assert.property(guild, 'members');
-		assert.lengthOf(guild.members, 2);
+			//assert the bot's user ID is correct
+			assert.isTrue(client.user.id === '606933041553866775');
 
-		assert.hasAllKeys(guild.members,
-			['145786944297631745',		//< User to interact with test messages
-				'606933041553866775']);	//< the bot running on the server
+			client.guilds.forEach((guild) => {
 
+				assert.property(guild, 'members');
+				assert.lengthOf(guild.members, 2);
+
+				assert.hasAllKeys(guild.members,
+					['145786944297631745',		//< User to interact with test messages
+						'606933041553866775']);	//< the bot running on the server
+
+			});
+			
+			correctChannel = testGuild1.channels.get(correctChannelId);
+			wrongChannel = testGuild1.channels.get(wrongChannelId);
+		})
+		.catch(error => {
+			return done(error);
+		})
+		.then(result => {
+			done();
+		});
+});
+
+describe('Start testing', function () {
+
+	it('Test Events',function () {
+		require('./events/testMessage.js')(client, correctChannel, wrongChannel);
+	});
+
+	it('Test Commands', function () {
+		require('./commands/testCreate.js')(client,correctChannel);
+	});
+
+	it('Test Classes', function () {
+		require('./classes/testSchedule.js')(client, correctChannel.id);
 	});
 });
 
-
-require('./events/testMessage.js');
-
-require('./testCreate.js');
+after(function (done) {
+	//TODO: reset server settings to their defaults; remove channels as necessary
+	setTimeout(function () {
+		done();
+		process.exit();
+	}, 250);
+});
