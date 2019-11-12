@@ -55,7 +55,7 @@ Schedule.prototype.removeEvent = function (eventID) {
  */
 Schedule.prototype.joinEvent = function (user, eventId) {
 
-	console.log(user);
+	//console.log(user);
 
 	const event = this.events.get(eventId);
 
@@ -63,7 +63,11 @@ Schedule.prototype.joinEvent = function (user, eventId) {
 	if (event) {
 		event.addUser(user);
 	} else {
-		user.send(`Event with ID ${eventId} does not exist.`);
+
+		const error = `Event with ID ${eventId} does not exist.`;
+
+		user.messageError = error;
+		user.send(error);
 	}
 }
 
@@ -78,7 +82,12 @@ Schedule.prototype.leaveEvent = function (user, eventId) {
 	if (event) {
 		event.removeUser(user);
 	} else {
-		user.send(`Event with ID ${eventId} does not exist.`);
+
+		const error = `Event with ID ${eventId} does not exist.`;
+
+		user.messageError = error;
+
+		user.send(error);
 	}
 }
 
@@ -160,6 +169,7 @@ Schedule.prototype.fireEvent = function (eventId) {
 
 /**
  * Get the number of events currently in the schedule
+ * @returns {number} the number of events currently in the schedule
  * */
 Schedule.prototype.eventCount = function () {
 	return this.events.size;
@@ -172,6 +182,10 @@ Schedule.prototype.clearEvents = function () {
 	this.events.clear();
 }
 
+/**
+ * Get the maximum number of events possible in the schedule
+ * @returns {number} the limit of events that can be in the schedule at once
+ * */
 Schedule.prototype.maxEvents = function () {
 	return maxEvents;
 }
