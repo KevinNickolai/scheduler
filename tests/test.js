@@ -74,6 +74,7 @@ describe('Start testing', function () {
 
 	it('Test Classes', function () {
 		require('./classes/testSchedule.js')(client, correctChannel.id);
+		require('./classes/testScheduleEvent.js');
 	});
 });
 
