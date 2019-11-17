@@ -1,9 +1,6 @@
 ﻿const newMessage = require('../instantiateMessage.js');
-const chai = require('chai');
 
-const assert = chai.assert;
-
-module.exports = (client, correctChannel, wrongChannel) => {
+module.exports = (client, assert, correctChannel, wrongChannel) => {
 
 	describe('Test Message Event', () => {
 

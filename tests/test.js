@@ -65,16 +65,16 @@ before(function (done) {
 describe('Start testing', function () {
 
 	it('Test Events',function () {
-		require('./events/testMessage.js')(client, correctChannel, wrongChannel);
+		require('./events/testMessage.js')(client, assert, correctChannel, wrongChannel);
 	});
 
 	it('Test Commands', function () {
-		require('./commands/testCreate.js')(client,correctChannel);
+		require('./commands/testCreate.js')(client, assert, correctChannel);
 	});
 
 	it('Test Classes', function () {
-		require('./classes/testSchedule.js')(client, correctChannel.id);
-		require('./classes/testScheduleEvent.js');
+		require('./classes/testSchedule.js')(client, assert, correctChannel.id);
+		require('./classes/testScheduleEvent.js')(client, assert);
 	});
 });
 

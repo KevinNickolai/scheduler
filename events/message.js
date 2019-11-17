@@ -41,7 +41,7 @@ module.exports = (client, message) => {
 
 		const argError = "You must provide arguments for the " + commandName + " command."
 
-		client.messageError = argError 
+		client.messageError = argError;
 
 		return user.send(argError);
 	}

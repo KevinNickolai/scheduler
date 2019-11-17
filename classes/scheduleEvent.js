@@ -48,7 +48,7 @@ ScheduleEvent.prototype.addUser = function (user) {
 ScheduleEvent.prototype.removeUser = function (user) {
 	const success = this.users.delete(user.id);
 
-	success ? user.send(`You have left event ${this.name}.`) : user.send(`You didn't join event ${this.name}!`);
+	success ? user.send(`You have left event ${this.name}.`) : user.send(`You never joined event ${this.name}!`);
 }
 
 ScheduleEvent.prototype.clearEventTimeout = function () {

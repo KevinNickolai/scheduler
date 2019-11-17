@@ -3,11 +3,7 @@
 const scheduleClass = require('../../classes/schedule.js');
 const autofireEventClass = require('../../classes/autofireEvent.js');
 
-const chai = require('chai');
-
-const assert = chai.assert;
-
-module.exports = (client, channelId) => {
+module.exports = (client, assert, channelId) => {
 
 	describe('Schedule', function () {
 

@@ -1,9 +1,6 @@
 ﻿const newMessage = require('../instantiateMessage.js');
-const chai = require('chai');
 
-const assert = chai.assert;
-
-module.exports = (client, channel) => {
+module.exports = (client, assert, channel) => {
 
 
 	describe('Create Command', () => {
