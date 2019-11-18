@@ -1,7 +1,12 @@
 ﻿const newMessage = require('../instantiateMessage.js');
 
+/**
+ * Tests the Create Command
+ * @param {Discord.Client} client The client connection to discord 
+ * @param {Chai.Assert} assert The assert suite for chai
+ * @param {Discord.Channel} channel the channel to send messages in
+ */
 module.exports = (client, assert, channel) => {
-
 
 	describe('Create Command', () => {
 
