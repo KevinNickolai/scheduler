@@ -26,7 +26,7 @@ async function main() {
 		* not already existant in the discord client
 		*/
 		client.scheduler.forEach((schedule, guildId) => {
-			database.setSchedule(schedule, guildId);
+			db.setSchedule(schedule, guildId);
 		});
 
 		//forEach schedule, populate with events in the database

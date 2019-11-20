@@ -75,7 +75,12 @@ DatabaseManager.prototype.setSchedule = async function (schedule, guildId) {
 		 * if no results, create an entry in the database for the guild;
 		 * else, enter events in the schedule
 		 */
-
+		console.log(result);
+		if (result.length === 0) {
+			this.database.query(
+				`INSERT INTO ${this.schedulesTable.name} (guild_id)
+				VALUES ${guildId};`);
+		}
 
 
 
