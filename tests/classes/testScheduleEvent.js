@@ -84,67 +84,16 @@ module.exports = (client, assert) => {
 			});
 		});
 
+		const user = new Discord.User(client, {
+			id: '145786944297631745',
+			username: 'Aug',
+			discriminator: '3876',
+			bot: false
+		});
+
 		describe('#addUser()', function () {
 
 			var event;
-
-			const user = new Discord.User(client, {
-				id: '145786944297631745',
-				username: 'Aug',
-				discriminator: '3876',
-				avatar: '440d4e25dfb2a9d72b062cb40827a6c9',
-				bot: false,
-				lastMessageID: '643341902271479838',
-				lastMessage: {
-					channel: {
-						type: 'text',
-						deleted: false,
-						id: '605626914857549835',
-						name: 'events',
-						position: 4,
-						parentID: '542147425578516494'
-					},
-					topic: '',
-					nsfw: false,
-					lastMessageID: '643341902271479838',
-					lastPinTimestamp: null,
-					rateLimitPerUser: 0,
-					guildId: '542147425578516492'
-				},
-				deleted: false,
-				id: '643341902271479838',
-				type: 'DEFAULT',
-				content: '!join 311',
-				member: {
-					joinedTimestamp: 1549465638043,
-					serverDeaf: false,
-					serverMute: false,
-					selfMute: false,
-					selfDeaf: false,
-					voiceSessionID: 'b7b55e064b0b836a2a4c86fa2b495582',
-					voiceChannelID: '542150411109400577',
-					speaking: false,
-					nickname: null,
-					lastMessageID: '643341902271479838',
-					deleted: false
-				},
-				pinned: false,
-				tts: false,
-				nonce: '643341903915384832',
-				system: false,
-				embeds: [],
-				createdTimestamp: 1573455062216,
-				editedTimestamp: null,
-				mentions: {
-					everyone: false,
-					_content: '!join 311',
-					_members: null,
-					_channels: null
-				},
-				webhookID: null,
-				hit: null,
-				_edits: []
-			});
 
 			beforeEach(function () {
 				event = new MockScheduleEvent(eventName, eventDate);
@@ -176,64 +125,8 @@ module.exports = (client, assert) => {
 		});
 
 		describe('removeUser()', function () {
+
 			var event;
-			const user = new Discord.User(client, {
-				id: '145786944297631745',
-				username: 'Aug',
-				discriminator: '3876',
-				avatar: '440d4e25dfb2a9d72b062cb40827a6c9',
-				bot: false,
-				lastMessageID: '643341902271479838',
-				lastMessage: {
-					channel: {
-						type: 'text',
-						deleted: false,
-						id: '605626914857549835',
-						name: 'events',
-						position: 4,
-						parentID: '542147425578516494'
-					},
-					topic: '',
-					nsfw: false,
-					lastMessageID: '643341902271479838',
-					lastPinTimestamp: null,
-					rateLimitPerUser: 0,
-					guildId: '542147425578516492'
-				},
-				deleted: false,
-				id: '643341902271479838',
-				type: 'DEFAULT',
-				content: '!join 311',
-				member: {
-					joinedTimestamp: 1549465638043,
-					serverDeaf: false,
-					serverMute: false,
-					selfMute: false,
-					selfDeaf: false,
-					voiceSessionID: 'b7b55e064b0b836a2a4c86fa2b495582',
-					voiceChannelID: '542150411109400577',
-					speaking: false,
-					nickname: null,
-					lastMessageID: '643341902271479838',
-					deleted: false
-				},
-				pinned: false,
-				tts: false,
-				nonce: '643341903915384832',
-				system: false,
-				embeds: [],
-				createdTimestamp: 1573455062216,
-				editedTimestamp: null,
-				mentions: {
-					everyone: false,
-					_content: '!join 311',
-					_members: null,
-					_channels: null
-				},
-				webhookID: null,
-				hit: null,
-				_edits: []
-			});
 
 			beforeEach(function () {
 				event = new MockScheduleEvent(eventName, eventDate);

@@ -30,16 +30,22 @@ class DatabaseManager {
 
 		this.eventTable = new Table("events",
 			`(id INT NOT NULL AUTO_INCREMENT,
-			guild_id VARCHAR(24) NOT NULL,
+			schedule_id INT NOT NULL,
 			event_id VARCHAR(4) NOT NULL,
 			event_date DATETIME NOT NULL,
 			PRIMARY KEY (id)
+			FOREIGN KEY (schedule_id)
+			REFERENCES ${this.schedulesTable.name}(id)
+			ON UPDATE CASCADE
+			ON DELETE CASCADE
 			)`);
 
 		this.usersTable = new Table("users",
 			`(id INT NOT NULL AUTO_INCREMENT,
-			
-			
+			user_id INT NOT NULL,
+			username VARCHAR(32) NOT NULL,
+			discriminator VARCHAR(4) NOT NULL,
+			PRIMARY KEY (id);
 			)`);
 
 		this.eventMembersTable = new Table("members",
@@ -67,22 +73,40 @@ class DatabaseManager {
  * @param {string} guildId The ID of the guild we are setting the schedule for
  */
 DatabaseManager.prototype.setSchedule = async function (schedule, guildId) {
+
+	//Get the database Schedule id we want to work with
 	this.database.query(
-		`SELECT * FROM ${this.schedulesTable.name}
+		`SELECT id FROM ${this.schedulesTable.name}
 		WHERE guild_id = ${guildId};`
 	).then((result) => {
+
 		/*
 		 * if no results, create an entry in the database for the guild;
-		 * else, enter events in the schedule
+		 * then enter events in the schedule
 		 */
 		console.log(result);
 		if (result.length === 0) {
-			this.database.query(
+			await result = this.database.query(
 				`INSERT INTO ${this.schedulesTable.name} (guild_id)
 				VALUES ${guildId};`);
 		}
 
+		//the ID of the schedule we want to work with
+		const scheduleId = result[0];
 
+
+		/*
+		 * Query for events in this schedule
+		 */
+		this.database.query(
+
+
+
+		).then((result) => {
+
+		}).catch((error) => {
+
+		});
 
 	}).catch((error) => {
 
