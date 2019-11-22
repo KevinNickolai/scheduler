@@ -78,7 +78,7 @@ DatabaseManager.prototype.setSchedule = async function (schedule, guildId) {
 	this.database.query(
 		`SELECT id FROM ${this.schedulesTable.name}
 		WHERE guild_id = ${guildId};`
-	).then((result) => {
+	).then(async (result) => {
 
 		/*
 		 * if no results, create an entry in the database for the guild;
@@ -86,7 +86,7 @@ DatabaseManager.prototype.setSchedule = async function (schedule, guildId) {
 		 */
 		console.log(result);
 		if (result.length === 0) {
-			await result = this.database.query(
+			result = await this.database.query(
 				`INSERT INTO ${this.schedulesTable.name} (guild_id)
 				VALUES ${guildId};`);
 		}
@@ -94,19 +94,64 @@ DatabaseManager.prototype.setSchedule = async function (schedule, guildId) {
 		//the ID of the schedule we want to work with
 		const scheduleId = result[0];
 
-
 		/*
 		 * Query for events in this schedule
 		 */
 		this.database.query(
-
-
-
+			`SELECT * FROM ${this.eventTable.name} 
+			WHERE schedule_id = ${scheduleId};`
 		).then((result) => {
+			/*
+			 * Process events' data, put into schedule
+			 */
+			result.forEach((eventData) => {
 
-		}).catch((error) => {
+				/*
+				 * TODO: determine how to serialize event type in database for reproduction here
+				 * Enum?
+				 */
 
-		});
+				/*
+				 * Add users to the events
+				 */
+				this.database.query(
+					`SELECT user_id FROM ${this.eventMembersTable.name}
+					WHERE event_id = ${eventData.id}`
+				).then((result) => {
+
+					/*
+					 * Get user info to create the Discord.User object
+					 */
+					result.forEach((memberId) => {
+
+						this.database.query(
+							`SELECT * FROM ${this.usersTable}
+							WHERE id = ${memberId};`
+						).then((result) => {
+							result.forEach((userData) => {
+								const user = new Discord.User(client, {
+									id: `${userData.user_id}`,
+									username: `${userData.username}`,
+									discriminator: `${userData.discriminator}`,
+									bot: false
+								});
+
+								/*
+								 * Add the user to the event they were previously in
+								 */
+							});
+						});
+
+					});
+				}).catch((error) => {
+
+				});
+
+
+			});
+
+
+		})
 
 	}).catch((error) => {
 
@@ -139,10 +184,16 @@ DatabaseManager.prototype.Init = async function (dbConfig) {
 
 	return new Promise((resolve, reject) => {
 
+		/*
+		 * Chain table creation in the database for initialization
+		 */
 		that.database.init()
 			.then((result) => {
 				console.log("Created & Connected to Database!");
 
+				/*
+				 * Set interval database querying to prevent loss of the connection
+				 */
 				setInterval(function () {
 					that.database.query('SELECT 1');
 				}, 45000);
@@ -157,7 +208,17 @@ DatabaseManager.prototype.Init = async function (dbConfig) {
 			.then((result) => {
 				console.log(`Created Table ${that.eventTable.name}!`);
 
-				return resolve();
+				return that.createTable(that.usersTable);
+			})
+			.then((result) => {
+				console.log(`Created Table ${that.usersTable.name}!`);
+
+				return that.createTable(that.eventMembersTable);
+			})
+			.then((result) => {
+				console.log(`Created Table ${that.eventMembersTable.name}`);
+
+				return resolve('Created all tables!');
 			})
 			.catch((err) => {
 				database.close();

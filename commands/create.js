@@ -87,7 +87,10 @@ module.exports = {
 
 		const serverId = message.guild.id;
 		const schedule = message.client.scheduler.get(serverId);
-		
+
+		/*
+		 * Process the date & time given by the user
+		 */
 		var currentDate = new Date();
 
 		const eventName = args.shift();
@@ -100,6 +103,10 @@ module.exports = {
 			return message.reply(`Invalid event date given: ${eventDay}`);
 		}
 
+		/*
+		 * Create the event based on user input
+		 * TODO: add user customization for event type using args
+		 */
 		const autofire = new autofireCreator(eventName, eventDate);
 
 		const eventId = schedule.addEvent(autofire);

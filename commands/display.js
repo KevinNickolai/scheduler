@@ -5,6 +5,9 @@
 	usage: "<command name>",
 	serverUnique: true,
 	execute(message, args) {
+		/*
+		 * Retrieve and display the schedule
+		 */
 		const serverId = message.guild.id;
 		const schedule = message.client.scheduler.get(serverId);
 

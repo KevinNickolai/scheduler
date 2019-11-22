@@ -6,6 +6,11 @@ const maxEvents = 100;
  * maintain all of the events within the schedule.
  * */
 class Schedule {
+
+	/**
+	 * Schedule Constructor
+	 * @param {string} channelId The ID of the channel that the schedule will receive commands in
+	 */
 	constructor(channelId) {
 		this.events = new Map();
 		this.channelId = channelId;
@@ -91,6 +96,10 @@ Schedule.prototype.leaveEvent = function (user, eventId) {
 	}
 }
 
+/**
+ * Set the timer for an event in the schedule to fire
+ * @param {number} eventId The ID of the event to set the timer for
+ */
 Schedule.prototype.setEventTimer = function (eventId) {
 
 	const event = this.events.get(eventId);

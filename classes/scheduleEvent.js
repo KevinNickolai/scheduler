@@ -10,10 +10,13 @@ class ScheduleEvent {
 	 * @param {Date} date The date of the event
 	 */
 	constructor(name = 'default event name', date = new Date()) {
+
+		//disables ScheduleEvent instantiation, making it abstract
 		if (new.target === ScheduleEvent) {
 			throw new TypeError("Cannot instantiate abstract ScheduleEvent class");
 		}
 
+		//require override of method displayEvent()
 		if ((typeof this.displayEvent) != "function") {
 			throw new TypeError("Must override method displayEvent()");
 		}
@@ -51,6 +54,9 @@ ScheduleEvent.prototype.removeUser = function (user) {
 	success ? user.send(`You have left event ${this.name}.`) : user.send(`You never joined event ${this.name}!`);
 }
 
+/**
+ * Clear the event's timeout function for firing
+ * */
 ScheduleEvent.prototype.clearEventTimeout = function () {
 	if (this.timeout) {
 		clearTimeout(this.timeout);

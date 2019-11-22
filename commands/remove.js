@@ -6,12 +6,17 @@
 	args: true,
 	serverUnique: true,
 	execute(message, args) {
+		//TODO: Remove event based on id/name, and based on which user is attempting to remove the event
+
 
 		const serverId = message.guild.id;
 		const schedule = message.client.scheduler.get(serverId);
 
 		const eventId = parseInt(args.shift());
 
+		/*
+		 * Process the eventId for removal
+		 */
 		if (isNaN(eventId)) {
 			return message.reply("The provided eventID was not a number.");
 		}
