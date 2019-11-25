@@ -106,8 +106,6 @@ DatabaseManager.prototype.setSchedule = async function (schedule, guildId) {
 			scheduleId = result[0].id;
 		}
 
-		
-
 		/*
 		 * Query for events in this schedule
 		 */
@@ -182,6 +180,29 @@ DatabaseManager.prototype.setSchedule = async function (schedule, guildId) {
  */
 DatabaseManager.prototype.createTable = async function (table) {
 	return this.database.query(table.sqlCreate);
+}
+
+/**
+ * Add an event to the database
+ * @param {ScheduleEvent} event The event to add to the database
+ * @param {number} eventId The ID of the event
+ * @param {string} guildId the ID of the guild
+ */
+DatabaseManager.prototype.addEvent = async function (event, eventId, guildId) {
+
+	this.database.query(
+		`SELECT id FROM ${this.schedulesTable.name}
+		WHERE guild_id = ${guildId};`)
+		.then((result) => {
+
+			scheduleId = result[0].id;
+			this.database.query(
+				`INSERT INTO ${this.eventTable.name} (schedule_id, event_id, event_date)
+				VALUES (${scheduleId}, ${eventId}, ${event.date});`
+			);
+		}).catch((error) => {
+			console.error(error);
+		});
 }
 
 /**
