@@ -33,7 +33,7 @@ class DatabaseManager {
 			schedule_id INT NOT NULL,
 			event_id VARCHAR(4) NOT NULL,
 			event_date DATETIME NOT NULL,
-			PRIMARY KEY (id)
+			PRIMARY KEY (id),
 			FOREIGN KEY (schedule_id)
 			REFERENCES ${this.schedulesTable.name}(id)
 			ON UPDATE CASCADE
@@ -45,8 +45,8 @@ class DatabaseManager {
 			user_id INT NOT NULL,
 			username VARCHAR(32) NOT NULL,
 			discriminator VARCHAR(4) NOT NULL,
-			PRIMARY KEY (id);
-			)`);
+			PRIMARY KEY (id)
+			);`);
 
 		this.eventMembersTable = new Table("members",
 		`(event_id INT NOT NULL,
@@ -80,19 +80,33 @@ DatabaseManager.prototype.setSchedule = async function (schedule, guildId) {
 		WHERE guild_id = ${guildId};`
 	).then(async (result) => {
 
+		//the ID of the schedule we want to work with
+		var scheduleId;
+
 		/*
 		 * if no results, create an entry in the database for the guild;
 		 * then enter events in the schedule
 		 */
-		console.log(result);
 		if (result.length === 0) {
-			result = await this.database.query(
+
+			//Get inserted row ID to get the id primary key from the schedules table
+			const rowId = await this.database.query(
 				`INSERT INTO ${this.schedulesTable.name} (guild_id)
-				VALUES ${guildId};`);
+				VALUES (${guildId});`).then((result) => {
+					return result.insertId;
+				});
+
+			//Get the id primary key from the schedules table
+			scheduleId = await this.database.query(
+				`SELECT id FROM ${this.schedulesTable.name}
+				WHERE id = ${rowId};`).then((result) => {
+					return result[0].id;
+				});
+		} else {
+			scheduleId = result[0].id;
 		}
 
-		//the ID of the schedule we want to work with
-		const scheduleId = result[0];
+		
 
 		/*
 		 * Query for events in this schedule
@@ -101,6 +115,7 @@ DatabaseManager.prototype.setSchedule = async function (schedule, guildId) {
 			`SELECT * FROM ${this.eventTable.name} 
 			WHERE schedule_id = ${scheduleId};`
 		).then((result) => {
+
 			/*
 			 * Process events' data, put into schedule
 			 */
