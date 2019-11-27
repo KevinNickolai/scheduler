@@ -24,6 +24,7 @@
 		if (schedule.removeEvent(eventId)) {
 			message.reply(`Removed event with ID ${eventId} from the schedule.`);
 			console.log(`removed event ${eventId}`);
+			message.client.database.removeEvent(eventId, message.guild.id);
 		} else {
 			message.reply(`No event with ID ${eventId} exists.`);
 		}

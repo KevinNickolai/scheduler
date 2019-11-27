@@ -1,4 +1,5 @@
 ﻿const databaseWrapper = require('./databaseWrapper.js');
+const autofireEvent = require('../autofireEvent.js');
 
 /**
  * Class that describes a database table and its columns
@@ -31,7 +32,8 @@ class DatabaseManager {
 		this.eventTable = new Table("events",
 			`(id INT NOT NULL AUTO_INCREMENT,
 			schedule_id INT NOT NULL,
-			event_id VARCHAR(4) NOT NULL,
+			event_id SMALLINT NOT NULL,
+			event_name VARCHAR(128) NOT NULL,
 			event_date DATETIME NOT NULL,
 			PRIMARY KEY (id),
 			FOREIGN KEY (schedule_id)
@@ -125,6 +127,14 @@ DatabaseManager.prototype.setSchedule = async function (schedule, guildId) {
 				 */
 
 				/*
+				 * recreate the event from the database;
+				 * the date has an ISO representation of milliseconds + timezone character at the end, so that
+				 * the date may be interpreted without offset here, as it was interpreted that way when being placed into the database
+				 */
+				const event = new autofireEvent(eventData.event_name, new Date(eventData.event_date + `.000z`));
+				schedule.readdEvent(event, eventData.event_id);
+
+				/*
 				 * Add users to the events
 				 */
 				this.database.query(
@@ -157,7 +167,8 @@ DatabaseManager.prototype.setSchedule = async function (schedule, guildId) {
 
 					});
 				}).catch((error) => {
-
+					console.error(error);
+					process.exit(0);
 				});
 
 
@@ -167,7 +178,8 @@ DatabaseManager.prototype.setSchedule = async function (schedule, guildId) {
 		})
 
 	}).catch((error) => {
-
+		console.error(error);
+		process.exit(0);
 	});
 
 
@@ -190,6 +202,9 @@ DatabaseManager.prototype.createTable = async function (table) {
  */
 DatabaseManager.prototype.addEvent = async function (event, eventId, guildId) {
 
+	//extract the date from the event, and parse to get a workable date string
+	const date = event.date.toISOString().split('.')[0];
+
 	this.database.query(
 		`SELECT id FROM ${this.schedulesTable.name}
 		WHERE guild_id = ${guildId};`)
@@ -197,12 +212,30 @@ DatabaseManager.prototype.addEvent = async function (event, eventId, guildId) {
 
 			scheduleId = result[0].id;
 			this.database.query(
-				`INSERT INTO ${this.eventTable.name} (schedule_id, event_id, event_date)
-				VALUES (${scheduleId}, ${eventId}, ${event.date});`
+				`INSERT INTO ${this.eventTable.name} (schedule_id, event_id, event_name, event_date)
+				VALUES (${scheduleId}, ${eventId}, '${event.name}', STR_TO_DATE('${date}','%Y-%m-%dT%H:%i:%s'));`
 			);
 		}).catch((error) => {
 			console.error(error);
 		});
+}
+
+/**
+ * Remove an event from the database
+ * @param {number} eventId the ID of the event to remove
+ * @param {string} guildId the ID of the guild to remove from
+ */
+DatabaseManager.prototype.removeEvent = async function (eventId, guildId) {
+	this.database.query(
+		`DELETE FROM ${this.eventTable.name}
+		WHERE event_id = ${eventId} AND
+		schedule_id = (SELECT id FROM ${this.schedulesTable.name}
+		WHERE guild_id=${guildId});`
+	).then((result) => {
+		console.log(result);
+	}).catch((error) => {
+		console.error(error);
+	});
 }
 
 /**

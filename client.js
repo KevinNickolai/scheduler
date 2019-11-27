@@ -11,6 +11,9 @@ const { promisify } = require('util');
 
 const readdirAsync = promisify(fs.readdir);
 
+/*
+ * Read in commands from the commands directory
+ */
 client.commands = new Discord.Collection;
 readdirAsync('./commands')
 	.then((files) => {
@@ -26,6 +29,9 @@ readdirAsync('./commands')
 		console.log(error);
 	});
 
+/*
+ * Read in events from the events directory
+ */
 readdirAsync('./events')
 	.then((files) => {
 		//console.log(files);

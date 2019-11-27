@@ -15,20 +15,25 @@ class Schedule {
 		this.events = new Map();
 		this.channelId = channelId;
 	}
+
+
 }
 
 /**
- * Add an event to the schedule
- * @param {ScheduleEvent} event The event to add to the schedule
- * @returns {number} the ID of the event added, -1 if unsuccessful to add
- */
-Schedule.prototype.addEvent = function (event) {
-	
+* Add an event to the schedule
+* @param {ScheduleEvent} event the event to add to the schedule
+* @param {number} eventId the ID of the event to add to the schedule
+* @returns {number} the ID of the event added, -1 if unsuccessful to add
+*/
+Schedule.prototype.add = function (event, eventId){
 	if (this.isFull()) {
 		return -1;
 	}
 
-	const eventId = this.generateEventId();
+	if (this.events.has(eventId)) {
+		console.log(`ID ${eventId} in schedule with channelId ${this.channelId} already exists.`);
+		return -1;
+	}
 
 	this.events.set(eventId, event);
 
@@ -37,6 +42,26 @@ Schedule.prototype.addEvent = function (event) {
 	//console.log(`Added event with ID ${eventId} to the schedule.`);
 
 	return eventId;
+}
+
+/**
+ * Add an event to the schedule
+ * @param {ScheduleEvent} event The event to add to the schedule
+ * @returns {number} the ID of the event added, -1 if unsuccessful to add
+ */
+Schedule.prototype.addEvent = function (event) {
+	return this.add(event, this.generateEventId());
+}
+
+
+/**
+ * Add an event that already exists to the schedule
+ * @param {ScheduleEvent} event The event to add to the schedule
+ * @param {number} eventId The ID of the event added
+ * @returns {number} the ID of the event added, -1 if unsuccessful to add
+ */
+Schedule.prototype.readdEvent = function (event, eventId) {
+	return this.add(event, eventId);
 }
 
 /**
@@ -174,6 +199,11 @@ Schedule.prototype.display = function () {
 Schedule.prototype.fireEvent = function (eventId) {
 	this.events.get(eventId).fire();
 	this.removeEvent(eventId);
+
+
+	/*
+	 * Remove the event from the client database
+	 */
 }
 
 /**
