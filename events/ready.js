@@ -31,7 +31,7 @@ module.exports = (client) => {
 
 		schedulerChannel.guildId = guild.id;
 
-		schedulerMap.set(guild.id,new Schedule(schedulerChannel.id));
+		schedulerMap.set(guild.id,new Schedule(schedulerChannel.id, client));
 
 	});
 

@@ -10,10 +10,13 @@ class Schedule {
 	/**
 	 * Schedule Constructor
 	 * @param {string} channelId The ID of the channel that the schedule will receive commands in
+	 * @param {Discord.Client} client The client that the schedule is managed by
 	 */
-	constructor(channelId) {
+	constructor(channelId, client) {
 		this.events = new Map();
 		this.channelId = channelId;
+		
+		this.client = client;
 	}
 
 
@@ -204,6 +207,8 @@ Schedule.prototype.fireEvent = function (eventId) {
 	/*
 	 * Remove the event from the client database
 	 */
+	client.database.removeEvent(eventId, this.channelId.guildId);
+
 }
 
 /**
