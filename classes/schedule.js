@@ -88,8 +88,6 @@ Schedule.prototype.removeEvent = function (eventID) {
  */
 Schedule.prototype.joinEvent = function (user, eventId) {
 
-	//console.log(user);
-
 	const event = this.events.get(eventId);
 
 	//check the existence of the event

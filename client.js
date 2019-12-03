@@ -3,6 +3,16 @@ const client = new Discord.Client();
 const config = require('./config.js');
 const fs = require('fs');
 
+
+const databaseManager = require('./classes/database/databaseManager.js');
+const db = new databaseManager();
+db.Init(config.localDBConfig)
+	.then((result) => {
+		client.database = db;
+	}).catch((error) => {
+		console.error('Database failed initialization.', error);
+	});
+
 /**
  * Promisify directory reading, then create event handling 
  * for all defined events, as well as creating the command list.
@@ -49,5 +59,6 @@ readdirAsync('./events')
 	.catch((error) => {
 		console.log(error);
 	});
+
 
 module.exports = client;

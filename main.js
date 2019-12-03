@@ -1,8 +1,7 @@
 const client = require('./client.js');
 const config = require('./config.js');
 
-const databaseManager = require('./classes/database/databaseManager.js');
-const db = new databaseManager();
+
 main();
 
 /*
@@ -15,11 +14,8 @@ async function main() {
 	 */
 	Promise.all(
 		[client.login(config.botToken),
-		db.Init(config.localDBConfig)]
+		client.database.Init(config.localDBConfig)]
 	).then(result => {
-
-		//Set the client's database for access when commands are taken in by client
-		client.database = db;
 
 		/*
 		* After proper connections, fill any schedules 
