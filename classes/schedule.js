@@ -26,25 +26,39 @@ class Schedule {
 * Add an event to the schedule
 * @param {ScheduleEvent} event the event to add to the schedule
 * @param {number} eventId the ID of the event to add to the schedule
-* @returns {number} the ID of the event added, -1 if unsuccessful to add
+* @returns {Promise<number>} A promise resolving with the ID of the event added, -1 if unsuccessful to add
 */
-Schedule.prototype.add = function (event, eventId){
-	if (this.isFull()) {
-		return -1;
-	}
+Schedule.prototype.add = function (event, eventId) {
 
-	if (this.events.has(eventId)) {
-		console.log(`ID ${eventId} in schedule with channelId ${this.channelId} already exists.`);
-		return -1;
-	}
+	//persistent schedule reference for the upcoming promise chain
+	const that = this;
 
-	this.events.set(eventId, event);
+	return new Promise((resolve, reject) => {
+		if (that.isFull()) {
+			return reject(-1);
+		}
 
-	this.setEventTimer(eventId);
+		if (that.events.has(eventId)) {
+			console.log(`ID ${eventId} in schedule with channelId ${that.channelId} already exists.`);
+			return reject(-1);
+		}
 
-	//console.log(`Added event with ID ${eventId} to the schedule.`);
+		/*
+		 * Attempt addition of the event to the scheduling database
+		 */
+		that.client.database.addEvent(event, eventId, that.channelId.guildId)
+			.then((result) => {
+				that.events.set(eventId, event);
+				that.setEventTimer(eventId);
 
-	return eventId;
+				console.log(eventId);
+
+				return resolve(eventId);
+			}).catch((error) => {
+				console.log(error);
+				return reject(error);
+			});
+	});
 }
 
 /**
@@ -69,16 +83,32 @@ Schedule.prototype.readdEvent = function (event, eventId) {
 
 /**
  * Remove an event from the schedule
- * @param {number} eventID The ID of the event to remove
+ * @param {number} eventId The ID of the event to remove
  * @returns {boolean} true if removed successfully, false otherwise
  */
-Schedule.prototype.removeEvent = function (eventID) {
+Schedule.prototype.removeEvent = function (eventId) {
 
-	if (this.events.has(eventID)) {
-		this.events.get(eventID).clearEventTimeout();
-	}
+	//persistent schedule reference for the upcoming promise chain
+	const that = this;
 
-	return this.events.delete(eventID);
+	return new Promise((resolve, reject) => {
+
+		if (that.events.has(eventId)) {
+
+			const event = that.events.get(eventId);
+			
+			that.client.database.removeEvent(eventId, that.channelId.guildId)
+				.then(result => {
+					event.clearEventTimeout();
+					return resolve(that.events.delete(eventId));
+			}).catch(error => {
+				return reject(false);
+			});
+		}
+
+		return resolve(false);
+	});
+
 }
 
 /**

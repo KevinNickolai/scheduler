@@ -22,7 +22,7 @@ module.exports = (client, assert, channelId) => {
 
 		});
 
-		describe('#addEvent()', function () {
+		describe.only('#addEvent()', function () {
 
 			const schedule = new scheduleClass(channelId);
 
@@ -44,7 +44,7 @@ module.exports = (client, assert, channelId) => {
 				assert.notStrictEqual(eventId, -1);
 				assert.hasAllKeys(schedule.events, eventId);
 				assert.lengthOf(schedule.events, 1);
-			});
+			}).;
 
 			it('adds events to the schedule until full', function () {
 
