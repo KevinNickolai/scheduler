@@ -205,11 +205,12 @@ DatabaseManager.prototype.addEvent = async function (event, eventId, guildId) {
 	//extract the date from the event, and parse to get a workable date string
 	const date = event.date.toISOString().split('.')[0];
 
-	this.database.query(
-		`SELECT id FROM ${this.schedulesTable.name}
-		WHERE guild_id = ${guildId};`)
-		.then((result) => {
+	const sql = `SELECT id FROM ${this.schedulesTable.name}
+		WHERE guild_id = ${guildId};`;
 
+	this.database.query(sql
+		)
+		.then((result) => {
 			scheduleId = result[0].id;
 			this.database.query(
 				`INSERT INTO ${this.eventTable.name} (schedule_id, event_id, event_name, event_date)
@@ -231,9 +232,7 @@ DatabaseManager.prototype.removeEvent = async function (eventId, guildId) {
 		WHERE event_id = ${eventId} AND
 		schedule_id = (SELECT id FROM ${this.schedulesTable.name}
 		WHERE guild_id=${guildId});`
-	).then((result) => {
-		console.log(result);
-	}).catch((error) => {
+	).catch((error) => {
 		console.error(error);
 	});
 }

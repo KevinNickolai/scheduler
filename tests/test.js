@@ -21,6 +21,11 @@ before(function (done) {
 
 	client.login(config.testBotToken)
 		.then(result => {
+
+			client.scheduler.forEach((schedule, guildId) => {
+				client.database.setSchedule(schedule, guildId);
+			});
+
 			testGuild1 = client.guilds.get('606933279060393984');
 			testGuild2 = client.guilds.get('606933327295021057');
 
@@ -73,7 +78,7 @@ describe('Start testing', function () {
 	});
 
 	it('Test Classes', function () {
-		require('./classes/testSchedule.js')(client, assert, correctChannel.id);
+		require('./classes/testSchedule.js')(client, assert, correctChannel.id, testGuild1.id);
 		require('./classes/testScheduleEvent.js')(client, assert);
 	});
 });

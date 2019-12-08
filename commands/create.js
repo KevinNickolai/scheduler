@@ -116,7 +116,7 @@ module.exports = {
 			return message.reply("failed to add the event to the schedule.");
 		}
 		
-		message.client.database.addEvent(autofire, eventId, message.guild.id);
+		//message.client.database.addEvent(autofire, eventId, message.guild.id);
 
 		message.reply(`Added event ${eventName} with ID ${eventId} to the schedule, ` +
 					  `set for ${eventDate.toDateString()} at ${eventDate.toTimeString()}`);

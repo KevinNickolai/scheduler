@@ -30,7 +30,7 @@ module.exports = (client, assert, correctChannel, wrongChannel) => {
 			const correctMessage = newMessage(createEventContent, client, correctChannel);
 
 			//client.emit is true if there is listener(s) for the event
-			assert.isTrue(client.emit('message', correctMessage));
+			assert.isTrue(await client.emit('message', correctMessage));
 
 			//event successfully added
 			assert.strictEqual(schedule.eventCount(), 1);

@@ -3,7 +3,14 @@
 const scheduleClass = require('../../classes/schedule.js');
 const autofireEventClass = require('../../classes/autofireEvent.js');
 
-module.exports = (client, assert, channelId) => {
+/**
+ * Export schedule tests
+ * @param {Discord.Client} client the Discord client to be interacted with
+ * @param {Chai.Assert} assert the Chai assert library used for assertion testing
+ * @param {string} channelId The id of the text channel to be used by the schedule
+ * @param {string} guildId The id of the server the schedule manages
+ */
+module.exports = (client, assert, channelId, guildId) => {
 
 	describe('Schedule', function () {
 
@@ -12,19 +19,22 @@ module.exports = (client, assert, channelId) => {
 			it('creates an empty schedule object', function () {
 
 				//create a schedule object
-				const newSchedule = new scheduleClass(channelId);
+				const newSchedule = new scheduleClass(channelId, client, guildId);
 
 				//verify the base constructor properties
 				assert.exists(newSchedule.events);
 				assert.strictEqual(newSchedule.channelId, channelId);
 
+				assert.strictEqual(client, newSchedule.client);
+				assert.strictEqual(newSchedule.guildId, guildId);
+
 			});
 
 		});
 
-		describe.only('#addEvent()', function () {
+		describe('#addEvent()', async function () {
 
-			const schedule = new scheduleClass(channelId);
+			const schedule = new scheduleClass(channelId,client,guildId);
 
 			//an event one day ahead of the current date
 			const eventDate = new Date();
@@ -32,30 +42,43 @@ module.exports = (client, assert, channelId) => {
 
 			const event = new autofireEventClass('test-event', eventDate);
 
-			it('add a single event to the schedule', function () {
+			it('add a single event to the schedule', function (done) {
 
 				assert.lengthOf(schedule.events, 0);
 
-				const eventId = schedule.addEvent(event);
+				schedule.addEvent(event)
+					.then((eventId) => {
+						/**
+						* verify the eventId and schedule both show an event was added
+						*/
+						assert.notStrictEqual(eventId, -1);
+						assert.hasAllKeys(schedule.events, eventId);
+						assert.lengthOf(schedule.events, 1);
 
-				/**
-				 * verify the eventId and schedule both show an event was added
-				 */
-				assert.notStrictEqual(eventId, -1);
-				assert.hasAllKeys(schedule.events, eventId);
+						done();
+					}).catch((error) => {
+						done(error);
+					});
+
+				
+			});
+
+			it('adds events to the schedule until full', async function () {
+
 				assert.lengthOf(schedule.events, 1);
-			}).;
 
-			it('adds events to the schedule until full', function () {
-
-				assert.lengthOf(schedule.events, 1);
-
-				var eventId = schedule.addEvent(event);
+				var eventId;
 
 				do {
-					assert.hasAnyKeys(schedule.events, eventId);
-					eventId = schedule.addEvent(event);
-				} while (eventId !== -1);
+					eventId = await schedule.addEvent(event)
+						.then((id) => {
+							if (id != -1) {
+								assert.hasAnyKeys(schedule.events, id);
+							}
+
+							return id;
+						});
+				} while(eventId !== -1);
 
 				//assure we've obtained the full condition
 				assert.strictEqual(eventId, -1);
@@ -65,7 +88,7 @@ module.exports = (client, assert, channelId) => {
 		});
 
 		describe('#removeEvent()', function () {
-			const schedule = new scheduleClass(channelId);
+			const schedule = new scheduleClass(channelId, client, guildId);
 
 			//an event one day ahead of the current date
 			const eventDate = new Date();
@@ -77,17 +100,27 @@ module.exports = (client, assert, channelId) => {
 
 			const eventsToAdd = 10;
 
-			beforeEach(function () {
+			beforeEach(function (done) {
+
 				//add events to the schedule before each test
 				for (i = 0; i < eventsToAdd; ++i) {
 					eventIdArray.push(schedule.addEvent(event));
 				}
 
-				assert.lengthOf(schedule.events, eventsToAdd);
-				assert.lengthOf(eventIdArray, eventsToAdd);
+				//assure that all events added to the eventIdArray resolve
+				Promise.all(eventIdArray)
+					.then((result) => {
+						assert.lengthOf(schedule.events, eventsToAdd);
+						assert.lengthOf(eventIdArray, eventsToAdd);
+
+						done();
+					}).catch((error) => {
+						assert.fail();
+						done(error);
+					});
 			});
 
-			it('removes one event from the schedule', function () {
+			it('removes one event from the schedule', function (done) {
 
 				assert.lengthOf(eventIdArray, eventsToAdd);
 
@@ -95,48 +128,89 @@ module.exports = (client, assert, channelId) => {
 
 				assert.lengthOf(eventIdArray, eventsToAdd - 1);
 
-				assert.isTrue(schedule.removeEvent(idToRemove));
-
-				assert.lengthOf(schedule.events, eventIdArray.length);
+				idToRemove.then((id) => {
+					schedule.removeEvent(id)
+						.then((removed) => {
+							assert.isTrue(removed);
+							assert.lengthOf(schedule.events, eventIdArray.length);
+							done();
+						}).catch((error) => {
+							done(error);
+						});
+				});
 
 			});
 
-			it('removes all events from the schedule', function () {
+			it('removes all events from the schedule', function (done) {
 
 				assert.lengthOf(eventIdArray, eventsToAdd);
 
-				while (eventIdArray.length > 0) {
-					const idToRemove = eventIdArray.shift();
+				//map the schedule's events to an array, then await the removal of all events
+				//before assertings and finishing the test
+				Promise.all(
+					Array.from(schedule.events, ([eventId, event]) => {
+						return new Promise((resolve, reject) => {
+							schedule.removeEvent(eventId)
+								.then((result) => {
+									resolve(result);
+								}).catch((error) => {
+									reject(error);
+								});
+						});
+					})
+				).then((promises) => {
 
-					assert.lengthOf(eventIdArray, schedule.eventCount() - 1);
+					//assert that all event promises were removed
+					promises.forEach(promise => {
+						assert.isTrue(promise);
+					});
 
-					assert.isTrue(schedule.removeEvent(idToRemove));
+					assert.lengthOf(schedule.events, 0);
 
-					assert.lengthOf(schedule.events, eventIdArray.length);
-				}
+					done();
+				}).catch((error) => {
+					assert.fail();
+					done(error);
+				});
+			});
 
-				assert.lengthOf(schedule.events, 0);
+			it('fails to remove nonexistent element', function (done) {
+
+				schedule.clearEvents()
+					.then((result) => {
+						//empty the schedule before attempting removal of a nonexistent event
+						assert.lengthOf(schedule.events, 0);
+
+						schedule.removeEvent(1).then((removed) => {
+							assert.isFalse(removed);
+
+							assert.lengthOf(schedule.events, 0);
+
+							done();
+						}).catch((error) => {
+							done(error);
+						});
+
+					}).catch((error) => {
+						assert.fail();
+						done(error);
+					});
+
 				
 			});
 
-			it('fails to remove nonexistent element', function () {
+			afterEach(function (done) {
 
-				while (eventIdArray.length > 0) {
-					schedule.removeEvent(eventIdArray.shift());
-				}
-
-				//empty the schedule before attempting removal of a nonexistent event
-				assert.lengthOf(schedule.events, 0);
-
-				assert.isFalse(schedule.removeEvent(1));
-
-				assert.lengthOf(schedule.events, 0);
-			});
-
-			afterEach(function () {
 				//clear events after each test
-				schedule.clearEvents();
-				eventIdArray = [];
+				schedule.clearEvents()
+					.then((result) => {
+						eventIdArray = [];
+						done();
+					}).catch((error) => {
+						assert.fail();
+						done(error);
+					});
+
 			});
 		});
 
@@ -149,7 +223,7 @@ module.exports = (client, assert, channelId) => {
 
 		describe('#joinEvent()', function () {
 
-			const schedule = new scheduleClass(channelId);
+			const schedule = new scheduleClass(channelId, client, guildId);
 
 			//an event one day ahead of the current date
 			const eventDate = new Date();
@@ -159,17 +233,24 @@ module.exports = (client, assert, channelId) => {
 			
 			var eventId;
 
-			beforeEach(function () {
+			beforeEach(function (done) {
 
 				//create a new event 
 				event = new autofireEventClass('test-event', eventDate);
 
-				eventId = schedule.addEvent(event);
+				eventId = schedule.addEvent(event)
+					.then((id) => {
+						//verify no users in the event
+						assert.lengthOf(event.users, 0);
+						assert.lengthOf(schedule.events, 1);
 
-				//verify no users in the event
-				assert.lengthOf(event.users, 0);
+						user.messageError = '';
 
-				user.messageError = '';
+						return id;
+						done();
+					}).catch((error) => {
+						done(error);
+					});
 			});
 
 			it('joins a single event for a given user', function () {
@@ -180,28 +261,34 @@ module.exports = (client, assert, channelId) => {
 
 			});
 
-			it('fails to join an event', function () {
+			it('fails to join an event', function (done) {
 
 				const failedEventId = -1;
 
-				schedule.removeEvent(failedEventId);
+				schedule.removeEvent(failedEventId)
+				.then((removed) => {
+					schedule.joinEvent(user, failedEventId);
 
-				schedule.joinEvent(user, failedEventId);
+					assert.lengthOf(event.users, 0);
 
-				assert.lengthOf(event.users, 0);
+					assert.strictEqual(user.messageError, `Event with ID ${failedEventId} does not exist.`);
 
-				assert.strictEqual(user.messageError, `Event with ID ${failedEventId} does not exist.`);
+					done();
+				}).catch((error) => {
+					assert.fail();
+					done(error);
+				});
 			});
 
-			afterEach(function () {
-				schedule.clearEvents();
+			afterEach(function (done) {
+				schedule.clearEvents().then(done()).catch((error) => done(error));
 			});
 
 		});
 
 		describe('#leaveEvent()', function () {
 
-			const schedule = new scheduleClass(channelId);
+			const schedule = new scheduleClass(channelId, client, guildId);
 
 			//an event one day ahead of the current date
 			const eventDate = new Date();
@@ -211,24 +298,32 @@ module.exports = (client, assert, channelId) => {
 
 			var eventId;
 
-			
-
-			beforeEach(function () {
+			beforeEach(function (done) {
 				//create a new event 
 				event = new autofireEventClass('test-event', eventDate);
 
-				eventId = schedule.addEvent(event);
+				eventId = schedule.addEvent(event)
+					.then((id) => {
 
-				schedule.joinEvent(user, eventId);
+						schedule.joinEvent(user, id);
 
-				assert.lengthOf(schedule.events, 1);
-				assert.lengthOf(event.users, 1);
+						assert.lengthOf(schedule.events, 1);
+						assert.lengthOf(event.users, 1);
 
-				user.messageError = '';
+						user.messageError = '';
+
+						done();
+						return id;
+					}).catch((error) => {
+						done(error);
+					});
+
+
 			});
 
 			it('removes a user from an event', function () {
 
+				console.log(eventId);
 				schedule.leaveEvent(user, eventId);
 
 				assert.lengthOf(event.users, 0);

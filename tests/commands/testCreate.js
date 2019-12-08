@@ -19,7 +19,7 @@ module.exports = (client, assert, channel) => {
 			assert.strictEqual(schedule.eventCount(), 0);
 
 			const createEventMessage = newMessage('create event 1', client, channel);
-			client.emit('message', createEventMessage);
+			await client.emit('message', createEventMessage);
 
 			assert.strictEqual(schedule.eventCount(), 1);
 		});

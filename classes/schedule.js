@@ -12,10 +12,10 @@ class Schedule {
 	 * @param {string} channelId The ID of the channel that the schedule will receive commands in
 	 * @param {Discord.Client} client The client that the schedule is managed by
 	 */
-	constructor(channelId, client) {
+	constructor(channelId, client, guildId) {
 		this.events = new Map();
 		this.channelId = channelId;
-		
+		this.guildId = guildId;
 		this.client = client;
 	}
 
@@ -35,24 +35,21 @@ Schedule.prototype.add = function (event, eventId) {
 
 	return new Promise((resolve, reject) => {
 		if (that.isFull()) {
-			return reject(-1);
+			return resolve(-1);
 		}
 
 		if (that.events.has(eventId)) {
 			console.log(`ID ${eventId} in schedule with channelId ${that.channelId} already exists.`);
-			return reject(-1);
+			return resolve(-1);
 		}
 
 		/*
 		 * Attempt addition of the event to the scheduling database
 		 */
-		that.client.database.addEvent(event, eventId, that.channelId.guildId)
+		that.client.database.addEvent(event, eventId, that.guildId)
 			.then((result) => {
 				that.events.set(eventId, event);
 				that.setEventTimer(eventId);
-
-				console.log(eventId);
-
 				return resolve(eventId);
 			}).catch((error) => {
 				console.log(error);
@@ -64,7 +61,7 @@ Schedule.prototype.add = function (event, eventId) {
 /**
  * Add an event to the schedule
  * @param {ScheduleEvent} event The event to add to the schedule
- * @returns {number} the ID of the event added, -1 if unsuccessful to add
+ * @returns {Promise<number>} A promise resolving with the ID of the event added, -1 if unsuccessful to add
  */
 Schedule.prototype.addEvent = function (event) {
 	return this.add(event, this.generateEventId());
@@ -75,7 +72,7 @@ Schedule.prototype.addEvent = function (event) {
  * Add an event that already exists to the schedule
  * @param {ScheduleEvent} event The event to add to the schedule
  * @param {number} eventId The ID of the event added
- * @returns {number} the ID of the event added, -1 if unsuccessful to add
+ * @returns {Promise<number>} A promise resolving with the ID of the event added, -1 if unsuccessful to add
  */
 Schedule.prototype.readdEvent = function (event, eventId) {
 	return this.add(event, eventId);
@@ -84,7 +81,7 @@ Schedule.prototype.readdEvent = function (event, eventId) {
 /**
  * Remove an event from the schedule
  * @param {number} eventId The ID of the event to remove
- * @returns {boolean} true if removed successfully, false otherwise
+ * @returns {Promise<boolean>} true if removed successfully, false otherwise
  */
 Schedule.prototype.removeEvent = function (eventId) {
 
@@ -96,17 +93,19 @@ Schedule.prototype.removeEvent = function (eventId) {
 		if (that.events.has(eventId)) {
 
 			const event = that.events.get(eventId);
-			
-			that.client.database.removeEvent(eventId, that.channelId.guildId)
+
+			that.client.database.removeEvent(eventId, that.guildId)
 				.then(result => {
 					event.clearEventTimeout();
-					return resolve(that.events.delete(eventId));
-			}).catch(error => {
-				return reject(false);
-			});
-		}
 
-		return resolve(false);
+					const deleted = that.events.delete(eventId);
+					return resolve(deleted);
+				}).catch(error => {
+					return reject(false);
+				});
+		} else {
+			return resolve(false);
+		}
 	});
 
 }
@@ -235,7 +234,7 @@ Schedule.prototype.fireEvent = function (eventId) {
 	/*
 	 * Remove the event from the client database
 	 */
-	client.database.removeEvent(eventId, this.channelId.guildId);
+	this.client.database.removeEvent(eventId, this.guildId);
 
 }
 
@@ -249,9 +248,26 @@ Schedule.prototype.eventCount = function () {
 
 /**
  * Clear the schedule of all events
+ * @returns {Promise} A promise resolving when the schedule is clear of events
  * */
 Schedule.prototype.clearEvents = function () {
-	this.events.clear();
+
+	const that = this;
+
+	return new Promise((resolve, reject) => {
+
+		//convert the events schedule to a format that will evaluate
+		//a promise for each event in the schedule, then resolve when all events are removed
+		Promise.all(
+			Array.from(that.events, ([eventId, event]) => {
+				return that.removeEvent(eventId);
+			})
+		).then((result) => {
+			resolve();
+		}).catch((error) => {
+			reject(error);
+		});
+	});
 }
 
 /**
