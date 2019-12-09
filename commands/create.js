@@ -109,17 +109,22 @@ module.exports = {
 		 */
 		const autofire = new autofireCreator(eventName, eventDate);
 
-		const eventId = schedule.addEvent(autofire);
+		schedule.addEvent(autofire)
+			.then((eventId) => {
+				//failed
+				if (eventId === -1) {
+					return message.reply("failed to add the event to the schedule.");
+				}
 
-		//failed
-		if (eventId === -1) {
-			return message.reply("failed to add the event to the schedule.");
-		}
-		
-		//message.client.database.addEvent(autofire, eventId, message.guild.id);
+				//message.client.database.addEvent(autofire, eventId, message.guild.id);
 
-		message.reply(`Added event ${eventName} with ID ${eventId} to the schedule, ` +
-					  `set for ${eventDate.toDateString()} at ${eventDate.toTimeString()}`);
-		//TODO: create the event, store in database
+				message.reply(`Added event ${eventName} with ID ${eventId} to the schedule, ` +
+					`set for ${eventDate.toDateString()} at ${eventDate.toTimeString()}`);
+				//TODO: create the event, store in database
+			}).catch((error) => {
+				console.log(error);
+			});
+
+
 	}
 }

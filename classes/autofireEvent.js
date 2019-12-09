@@ -20,7 +20,7 @@ class AutofireEvent extends ScheduleEvent {
  * @returns {string} the event displayed in a proper format.
  * */
 AutofireEvent.prototype.displayEvent = function () {
-	return `${this.name}, autofiring on ${this.date.toDateString()} at ${this.date.toTimeString()}`;
+	return `${this.name}, autofiring on ${this.date.toDateString()} at ${this.date.toTimeString()} with ${this.users.size} member(s).`;
 }
 
 module.exports = AutofireEvent;

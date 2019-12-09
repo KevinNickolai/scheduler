@@ -238,15 +238,14 @@ module.exports = (client, assert, channelId, guildId) => {
 				//create a new event 
 				event = new autofireEventClass('test-event', eventDate);
 
-				eventId = schedule.addEvent(event)
+				schedule.addEvent(event)
 					.then((id) => {
 						//verify no users in the event
 						assert.lengthOf(event.users, 0);
 						assert.lengthOf(schedule.events, 1);
 
 						user.messageError = '';
-
-						return id;
+						eventId = id;
 						done();
 					}).catch((error) => {
 						done(error);
@@ -302,7 +301,7 @@ module.exports = (client, assert, channelId, guildId) => {
 				//create a new event 
 				event = new autofireEventClass('test-event', eventDate);
 
-				eventId = schedule.addEvent(event)
+				schedule.addEvent(event)
 					.then((id) => {
 
 						schedule.joinEvent(user, id);
@@ -312,8 +311,8 @@ module.exports = (client, assert, channelId, guildId) => {
 
 						user.messageError = '';
 
+						eventId = id;
 						done();
-						return id;
 					}).catch((error) => {
 						done(error);
 					});
@@ -323,7 +322,7 @@ module.exports = (client, assert, channelId, guildId) => {
 
 			it('removes a user from an event', function () {
 
-				console.log(eventId);
+				//console.log(eventId);
 				schedule.leaveEvent(user, eventId);
 
 				assert.lengthOf(event.users, 0);

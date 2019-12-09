@@ -26,9 +26,10 @@ class Schedule {
 * Add an event to the schedule
 * @param {ScheduleEvent} event the event to add to the schedule
 * @param {number} eventId the ID of the event to add to the schedule
+* @param {boolean} updateDatabase flag indicating if the database should be updated to reflect schedule changes
 * @returns {Promise<number>} A promise resolving with the ID of the event added, -1 if unsuccessful to add
 */
-Schedule.prototype.add = function (event, eventId) {
+Schedule.prototype.add = function (event, eventId, updateDatabase = true) {
 
 	//persistent schedule reference for the upcoming promise chain
 	const that = this;
@@ -43,18 +44,25 @@ Schedule.prototype.add = function (event, eventId) {
 			return resolve(-1);
 		}
 
-		/*
-		 * Attempt addition of the event to the scheduling database
-		 */
-		that.client.database.addEvent(event, eventId, that.guildId)
-			.then((result) => {
-				that.events.set(eventId, event);
-				that.setEventTimer(eventId);
-				return resolve(eventId);
-			}).catch((error) => {
-				console.log(error);
-				return reject(error);
-			});
+		if (updateDatabase) {
+			/*
+			* Attempt addition of the event to the scheduling database
+			*/
+			that.client.database.addEvent(event, eventId, that.guildId)
+				.then((result) => {
+					that.events.set(eventId, event);
+					that.setEventTimer(eventId);
+					return resolve(eventId);
+				}).catch((error) => {
+					console.log(error);
+					return reject(error);
+				});
+		} else {
+			that.events.set(eventId, event);
+			that.setEventTimer(eventId);
+			return resolve(eventId);
+		}
+
 	});
 }
 
@@ -75,7 +83,7 @@ Schedule.prototype.addEvent = function (event) {
  * @returns {Promise<number>} A promise resolving with the ID of the event added, -1 if unsuccessful to add
  */
 Schedule.prototype.readdEvent = function (event, eventId) {
-	return this.add(event, eventId);
+	return this.add(event, eventId, false);
 }
 
 /**
@@ -107,7 +115,6 @@ Schedule.prototype.removeEvent = function (eventId) {
 			return resolve(false);
 		}
 	});
-
 }
 
 /**
@@ -121,7 +128,13 @@ Schedule.prototype.joinEvent = function (user, eventId) {
 
 	//check the existence of the event
 	if (event) {
-		event.addUser(user);
+		this.client.database.addUser(user, eventId, this.guildId)
+			.then((result) => {
+				event.addUser(user);
+			}).catch((error) => {
+				console.log(error);
+			});
+
 	} else {
 
 		const error = `Event with ID ${eventId} does not exist.`;
@@ -129,6 +142,17 @@ Schedule.prototype.joinEvent = function (user, eventId) {
 		user.messageError = error;
 		user.send(error);
 	}
+}
+
+/**
+ * rejoin an event on the schedule
+ * @param {Discord.User} user The discord user that is rejoining the event
+ * @param {number} eventId The ID of the event that the user is rejoining
+ */
+Schedule.prototype.rejoinEvent = function (user, eventId) {
+	const event = this.events.get(eventId);
+
+	event.readdUser(user);
 }
 
 /**
@@ -140,7 +164,11 @@ Schedule.prototype.leaveEvent = function (user, eventId) {
 	const event = this.events.get(eventId);
 
 	if (event) {
-		event.removeUser(user);
+
+		this.client.database.removeUser(user, eventId, this.guildId)
+			.then((result) => {
+				event.removeUser(user);
+			});
 	} else {
 
 		const error = `Event with ID ${eventId} does not exist.`;
@@ -215,7 +243,7 @@ Schedule.prototype.display = function () {
 	var scheduleString = "```";
 
 	this.events.forEach((event, id) => {
-		scheduleString += `EventID ${id}: ` + event.displayEvent() + '\n';
+		scheduleString += `EventID ${id}: ` + event.displayEvent() + '\n\n';
 	});
 
 	scheduleString += "```";
@@ -225,17 +253,12 @@ Schedule.prototype.display = function () {
 /**
  * Fire the event of the given eventId
  * @param {number} eventId The ID associate to the event in the schedule
+ * @returns {boolean} true if the event fired and was removed properly, false otherwise.
  */
 Schedule.prototype.fireEvent = function (eventId) {
 	this.events.get(eventId).fire();
-	this.removeEvent(eventId);
-
-
-	/*
-	 * Remove the event from the client database
-	 */
-	this.client.database.removeEvent(eventId, this.guildId);
-
+	
+	return this.removeEvent(eventId);
 }
 
 /**

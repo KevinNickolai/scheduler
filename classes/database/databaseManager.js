@@ -1,4 +1,6 @@
-﻿const databaseWrapper = require('./databaseWrapper.js');
+﻿const Discord = require('discord.js');
+
+const databaseWrapper = require('./databaseWrapper.js');
 const autofireEvent = require('../autofireEvent.js');
 
 /**
@@ -36,6 +38,7 @@ class DatabaseManager {
 			event_name VARCHAR(128) NOT NULL,
 			event_date DATETIME NOT NULL,
 			PRIMARY KEY (id),
+			CONSTRAINT unique_event UNIQUE (schedule_id, event_id),
 			FOREIGN KEY (schedule_id)
 			REFERENCES ${this.schedulesTable.name}(id)
 			ON UPDATE CASCADE
@@ -44,16 +47,17 @@ class DatabaseManager {
 
 		this.usersTable = new Table("users",
 			`(id INT NOT NULL AUTO_INCREMENT,
-			user_id INT NOT NULL,
+			user_id VARCHAR(18) NOT NULL,
 			username VARCHAR(32) NOT NULL,
 			discriminator VARCHAR(4) NOT NULL,
 			PRIMARY KEY (id)
 			);`);
 
 		this.eventMembersTable = new Table("members",
-		`(event_id INT NOT NULL,
+			`(event_id INT NOT NULL,
 		user_id INT NOT NULL,
-		PRIMARY KEY (event_id, user_id),
+		schedule_id INT NOT NULL,
+		PRIMARY KEY (schedule_id, event_id, user_id),
 		FOREIGN KEY (event_id)
 		REFERENCES ${this.eventTable.name}(id)
 		ON UPDATE CASCADE
@@ -61,12 +65,14 @@ class DatabaseManager {
 		FOREIGN KEY (user_id)
 		REFERENCES ${this.usersTable.name}(id)
 		ON UPDATE CASCADE
+		ON DELETE CASCADE,
+		FOREIGN KEY (schedule_id)
+		REFERENCES ${this.schedulesTable.name}(id)
+		ON UPDATE CASCADE
 		ON DELETE CASCADE
 		)`
 		);
-	 
 	}
-
 }
 
 /**
@@ -74,7 +80,7 @@ class DatabaseManager {
  * @param {Schedule} schedule The schedule to set, based on the database information
  * @param {string} guildId The ID of the guild we are setting the schedule for
  */
-DatabaseManager.prototype.setSchedule = async function (schedule, guildId) {
+DatabaseManager.prototype.setSchedule = async function (schedule, guildId, client) {
 
 	//Get the database Schedule id we want to work with
 	this.database.query(
@@ -139,7 +145,8 @@ DatabaseManager.prototype.setSchedule = async function (schedule, guildId) {
 				 */
 				this.database.query(
 					`SELECT user_id FROM ${this.eventMembersTable.name}
-					WHERE event_id = ${eventData.id}`
+					WHERE event_id = ${eventData.id}
+					AND schedule_id = ${scheduleId};`
 				).then((result) => {
 
 					/*
@@ -148,8 +155,8 @@ DatabaseManager.prototype.setSchedule = async function (schedule, guildId) {
 					result.forEach((memberId) => {
 
 						this.database.query(
-							`SELECT * FROM ${this.usersTable}
-							WHERE id = ${memberId};`
+							`SELECT * FROM ${this.usersTable.name}
+							WHERE id = ${memberId.user_id};`
 						).then((result) => {
 							result.forEach((userData) => {
 								const user = new Discord.User(client, {
@@ -162,6 +169,7 @@ DatabaseManager.prototype.setSchedule = async function (schedule, guildId) {
 								/*
 								 * Add the user to the event they were previously in
 								 */
+								schedule.rejoinEvent(user, eventData.event_id);
 							});
 						});
 
@@ -208,8 +216,7 @@ DatabaseManager.prototype.addEvent = async function (event, eventId, guildId) {
 	const sql = `SELECT id FROM ${this.schedulesTable.name}
 		WHERE guild_id = ${guildId};`;
 
-	this.database.query(sql
-		)
+	this.database.query(sql)
 		.then((result) => {
 			scheduleId = result[0].id;
 			this.database.query(
@@ -235,6 +242,132 @@ DatabaseManager.prototype.removeEvent = async function (eventId, guildId) {
 	).catch((error) => {
 		console.error(error);
 	});
+}
+
+/**
+ * Add a user to an event in the database
+ * @param {Discord.User} user the User to add to the event
+ * @param {number} eventId the ID of the event
+ * @param {string} guildId the ID of the server
+ */
+DatabaseManager.prototype.addUser = async function (user, eventId, guildId) {
+	const sql =
+		`SELECT id FROM ${this.usersTable.name} 
+		WHERE user_id = ${user.id};`;
+
+	this.database.query(sql)
+		.then(async (result) => {
+
+			var userId;
+
+			/*
+			 * If the user doesn't exist in the database, insert and select them
+			 * to obtain their unique id in the users table
+			 */
+			if (result.length === 0) {
+
+				//insert the user into the database
+				await this.database.query(
+					`INSERT INTO ${this.usersTable.name} (user_id, username, discriminator)
+					VALUES ('${user.id}', '${user.username}', '${user.discriminator}');`).then((result) => {
+						return result.insertId;
+					});
+
+				//Get the id primary key from the users table
+				userId = await this.database.query(sql)
+					.then((result) => {
+						return result[0].id;
+					});
+			} else {
+				userId = result[0].id;
+			}
+
+			/*
+			 * Select the schedule we are working with in the database
+			 */
+			this.database.query(
+				`SELECT id FROM ${this.schedulesTable.name}
+				WHERE guild_id = ${guildId};`
+			).then((result) => {
+				const scheduleId = result[0].id;
+
+				this.database.query(
+					`SELECT id FROM ${this.eventTable.name}
+					WHERE event_id = ${eventId} 
+					AND schedule_id = ${scheduleId};`
+				).then((result) => {
+
+					const eventDatabaseId = result[0].id;
+
+					this.database.query(
+						`INSERT INTO ${this.eventMembersTable.name} (schedule_id, event_id, user_id)
+						VALUES (${scheduleId}, ${eventDatabaseId}, ${userId});`
+					);
+
+				}).catch((error) => {
+					console.error(error);
+				});
+
+			}).catch((error) => {
+				console.error(error);
+			});
+
+		}).catch((error) => {
+			console.error(error);
+		});
+}
+
+/**
+ * Remove a user from an event in the database
+ * @param {Discord.User} user the user to remove from the event
+ * @param {number} eventId the ID of the event
+ * @param {string} guildId the ID of the server
+ */
+DatabaseManager.prototype.removeUser = async function (user, eventId, guildId) {
+	const sql =
+		`SELECT id FROM ${this.usersTable.name} 
+		WHERE user_id = ${user.id};`;
+
+	this.database.query(sql)
+		.then((result) => {
+			const userId = result[0].id;
+
+			this.database.query(
+				`SELECT id FROM ${this.schedulesTable.name}
+				WHERE guild_id = ${guildId};`
+			).then((result) => {
+				const scheduleId = result[0].id;
+
+				this.database.query(
+					`SELECT id FROM ${this.eventTable.name}
+					WHERE event_id = ${eventId}
+					AND schedule_id = ${scheduleId};`
+				).then((result) => {
+
+					const eventDatabaseId = result[0].id;
+
+					console.log(eventDatabaseId);
+					console.log(scheduleId);
+					console.log(userId);
+
+
+					this.database.query(
+						`DELETE FROM ${this.eventMembersTable.name}
+						WHERE event_id = ${eventDatabaseId}
+						AND schedule_id = ${scheduleId}
+						AND user_id = ${userId};`
+					).then((result) => {
+						console.log(result);
+					});
+				}).catch((error) => {
+					console.log(error);
+				});
+			}).catch((error) => {
+				console.log(error);
+			});
+		}).catch((error) => {
+			console.log(error);
+		});
 }
 
 /**

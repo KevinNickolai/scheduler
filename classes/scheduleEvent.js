@@ -44,6 +44,15 @@ ScheduleEvent.prototype.addUser = function (user) {
 	}
 }
 
+
+/**
+ * readd a user to the event
+ * @param {Discord.User} user the user to readd to the event.
+ */
+ScheduleEvent.prototype.readdUser = function (user) {
+	this.users.set(user.id, user);
+}
+
 /**
  * Remove a user from the event.
  * @param {Discord.User} user The user attempting to leave the event

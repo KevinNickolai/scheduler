@@ -21,12 +21,18 @@
 			return message.reply("The provided eventID was not a number.");
 		}
 
-		if (schedule.removeEvent(eventId)) {
-			message.reply(`Removed event with ID ${eventId} from the schedule.`);
-			console.log(`removed event ${eventId}`);
-			message.client.database.removeEvent(eventId, message.guild.id);
-		} else {
-			message.reply(`No event with ID ${eventId} exists.`);
-		}
+		schedule.removeEvent(eventId)
+			.then((removed) => {
+				if (removed) {
+					message.reply(`Removed event with ID ${eventId} from the schedule.`);
+					message.client.database.removeEvent(eventId, message.guild.id);
+				} else {
+					message.reply(`No event with ID ${eventId} exists.`);
+				}
+			}).catch((error) => {
+				console.log(error);
+			});
+
+
 	}
 }
