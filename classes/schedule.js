@@ -121,27 +121,33 @@ Schedule.prototype.removeEvent = function (eventId) {
  * join an event on the schedule
  * @param {Discord.User} user The discord user that is joining the event
  * @param {number} eventId The ID of the event that the user is joining
+ * @returns {Promise} A promise that resolves when the user has been added to the event
  */
 Schedule.prototype.joinEvent = function (user, eventId) {
 
-	const event = this.events.get(eventId);
+	return new Promise((resolve, reject) => {
+		const event = this.events.get(eventId);
 
-	//check the existence of the event
-	if (event) {
-		this.client.database.addUser(user, eventId, this.guildId)
-			.then((result) => {
-				event.addUser(user);
-			}).catch((error) => {
-				console.log(error);
-			});
+		//check the existence of the event
+		if (event) {
+			this.client.database.addUser(user, eventId, this.guildId)
+				.then((result) => {
+					event.addUser(user);
+					resolve();
+				}).catch((error) => {
+					console.log(error);
+					reject(error);
+				});
 
-	} else {
+		} else {
 
-		const error = `Event with ID ${eventId} does not exist.`;
+			const error = `Event with ID ${eventId} does not exist.`;
 
-		user.messageError = error;
-		user.send(error);
-	}
+			user.messageError = error;
+			user.send(error);
+			resolve();
+		}
+	});
 }
 
 /**
@@ -191,8 +197,12 @@ Schedule.prototype.setEventTimer = function (eventId) {
 
 	if (timeToWait <= 0) {
 		//do immediately
-		this.fireEvent(eventId);
-
+		this.fireEvent(eventId)
+			.then((result) => {
+				console.log(`Fired event ${eventId} successfully`);
+			}).catch((error) => {
+				console.error(error);
+			});
 	} else if (timeToWait <= 86400000) {
 		//settimeout
 
@@ -200,6 +210,11 @@ Schedule.prototype.setEventTimer = function (eventId) {
 
 		event.timeout = setTimeout(function () {
 			that.fireEvent(eventId)
+				.then((result) => {
+					console.log(`Fired event ${eventId} successfully`);
+				}).catch((error) => {
+					console.error(error);
+				});
 		}, timeToWait);
 
 	} else {
@@ -253,7 +268,7 @@ Schedule.prototype.display = function () {
 /**
  * Fire the event of the given eventId
  * @param {number} eventId The ID associate to the event in the schedule
- * @returns {boolean} true if the event fired and was removed properly, false otherwise.
+ * @returns {Promise<boolean>} true if the event fired and was removed properly, false otherwise.
  */
 Schedule.prototype.fireEvent = function (eventId) {
 	this.events.get(eventId).fire();

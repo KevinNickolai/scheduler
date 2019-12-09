@@ -6,65 +6,141 @@ const autofireCreator = require('../classes/autofireEvent.js');
  * @param {Date} date A date object describing the date of the event
  * @param {string} day a string indicating the day we want to set the event for
  */
-function parseDate(date,day) {
+function parseDate(date, day, time) {
 
 	const dayInt = parseInt(day);
 
+	/*
+	 * Parse the day given by the user
+	 */
 	if (isNaN(dayInt)) {
-		const dayOfWeek = date.getDay();
 
+		//The current day of the week, indexed at 1 for sunday ... 7 for saturday
+		const dayOfWeek = date.getDay() + 1;
+
+		//the name of the day, lowercase
 		day = day.toLowerCase();
+
+		//difference in the day number
+		var diff;
 
 		switch (day) {
 
 			case 'today':
+				diff = 0;
 				break;
 
 			case 'tomorrow':
 			case 'tom':
+				diff = 1;
+				break;
 
+			case 'sunday':
+			case 'sun':
+				diff = 7 - dayOfWeek + 1; 
 				break;
 
 			case 'monday':
 			case 'mon':
+				diff = (dayOfWeek > 2 ? 7 - dayOfWeek + 2 : 2 - dayOfWeek);
+				console.log(diff);
 				break;
 
 			case 'tuesday':
 			case 'tues':
+				diff = (dayOfWeek > 3 ? 7 - dayOfWeek + 3 : 3 - dayOfWeek);
 				break;
 
 			case 'wednesday':
 			case 'wed':
+				diff = (dayOfWeek > 4 ? 7 - dayOfWeek + 4 : 4 - dayOfWeek);
 				break;
 
 			case 'thursday':
 			case 'thurs':
 			case 'thu':
+				diff = (dayOfWeek > 5 ? 7 - dayOfWeek + 5 : 5 - dayOfWeek);
 				break;
 
 			case 'friday':
 			case 'fri':
+				diff = (dayOfWeek > 6 ? 7 - dayOfWeek + 6 : 6 - dayOfWeek);
 				break;
 
 			case 'saturday':
 			case 'sat':
-				break;
-
-			case 'sunday':
-			case 'sun':
+				diff = 7 - dayOfWeek;
 				break;
 		}
 
-	
+		date.setDate(date.getDate() + diff);
+
 	} else if (dayInt < 0 || dayInt > 30) {
-		console.log('Invalid date given');
+		console.log(`Invalid date ${dayInt} given`);
 		return;
+	} else if (dayInt < 1) {
+		date.setSeconds(date.getSeconds() + 15);
 	} else {
-
 		date.setDate(date.getDate() + dayInt);
-
-		return date;
 	}
+
+	if (time) {
+
+		const splitTime = time.split(':', 3);
+
+		const timeInt = parseInt(time);
+
+		if (splitTime.length > 1) {
+
+			if (splitTime.length > 3) {
+				console.log(`Invalid time ${time} given.`);
+				return;
+			} else if (splitTime.length > 1) {
+
+				const hours = splitTime.shift();
+				const minutes = splitTime.shift();
+				const seconds = splitTime.shift();
+
+				if (hours > 12 || hours < 0) {
+					console.log(`Invalid hour ${hours} given.`);
+					return;
+				} else {
+					date.setHours(hours);
+				}
+
+				if (minutes > 59 || minutes < 0) {
+					console.log(`Invalid minutes ${minutes} given.`);
+					return;
+				} else {
+					date.setMinutes(minutes);
+				}
+
+				if (seconds > 59 || seconds < 0) {
+					console.log(`Invalid seconds ${seconds} given.`);
+					return;
+				} else {
+					date.setSeconds(seconds);
+				}
+
+		} else if (isNaN(timeInt)) {
+
+
+
+
+			} else {
+
+			}
+
+
+		} else if (timeInt < 0 || timeInt > 2359) {
+			console.log(`Invalid time ${timeInt} given.`);
+			return;
+		} else {
+
+		}
+	}
+
+	return date;
 
 }
 
@@ -97,7 +173,9 @@ module.exports = {
 		const eventDay = args.shift();
 		const eventTime = args.shift();
 
-		const eventDate = parseDate(currentDate, eventDay);
+		console.log(eventTime);
+
+		const eventDate = parseDate(currentDate, eventDay, eventTime);
 
 		if (!eventDate) {
 			return message.reply(`Invalid event date given: ${eventDay}`);

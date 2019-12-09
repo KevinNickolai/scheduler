@@ -252,12 +252,18 @@ module.exports = (client, assert, channelId, guildId) => {
 					});
 			});
 
-			it('joins a single event for a given user', function () {
+			it('joins a single event for a given user', function (done) {
 
-				schedule.joinEvent(user, eventId);
+				schedule.joinEvent(user, eventId)
+					.then((result) => {
+						assert.lengthOf(event.users, 1);
+						done();
+					}).catch((error) => {
+						assert.fail();
+						done(error);
+					});
 
-				assert.lengthOf(event.users, 1);
-
+				
 			});
 
 			it('fails to join an event', function (done) {
