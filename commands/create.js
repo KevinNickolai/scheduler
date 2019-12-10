@@ -5,10 +5,29 @@ const autofireCreator = require('../classes/autofireEvent.js');
  * Parse the day, and factor that into the date for the created event
  * @param {Date} date A date object describing the date of the event
  * @param {string} day a string indicating the day we want to set the event for
+ * @param {string} time the time in string format
+ * @param {string} am_pm the 12hour indicator of AM or PM
  */
-function parseDate(date, day, time) {
+function parseDate(date, day, time, am_pm) {
 
 	const dayInt = parseInt(day);
+
+	var pm = true;
+
+	if (am_pm) {
+		am_pm.toLowerCase();
+		if (am_pm === 'am') {
+			pm = false;
+		} else if (am_pm === 'pm') {
+			//pm already true
+		} else {
+			//invalid AM/PM
+			console.log(`Invalid string for AM/PM: ${am_pm}`);
+		}
+	}
+	
+
+
 
 	/*
 	 * Parse the day given by the user
@@ -95,18 +114,34 @@ function parseDate(date, day, time) {
 				return;
 			} else if (splitTime.length > 1) {
 
-				const hours = splitTime.shift();
-				const minutes = splitTime.shift();
-				const seconds = splitTime.shift();
+				var hours = parseInt(splitTime.shift());
+				const minutes = parseInt(splitTime.shift());
+				const seconds = parseInt(splitTime.shift());
 
-				if (hours) {
-					if (hours > 12 || hours < 0) {
-						console.log(`Invalid hour ${hours} given.`);
-						return;
-					} else {
-						date.setHours(hours);
+				//AM/PM check
+				if (hours && am_pm) {
+
+					if (pm && hours != 12) {
+						hours += 12;
+					}
+
+					if (!pm && hours === 12) {
+						hours = 0;
 					}
 				}
+
+				/*
+				 * Set hours, minutes, and seconds, based on the following factors:
+				 * existence of the argument; validity of the argument;
+				 * presence of AM/PM argument
+				 */
+				date.setHours(
+					(((hours) && hours <= 23 || hours >= 0) ? hours : date.getHours()),
+					(((minutes) && minutes <= 59 || minutes > 0) ? minutes : 0),
+					(((seconds) && seconds <= 59 || seconds > 0) ? seconds : 0)
+				);
+
+				/**
 
 				if (minutes) {
 					if (minutes > 59 || minutes < 0) {
@@ -117,6 +152,15 @@ function parseDate(date, day, time) {
 					}
 				}
 
+				if (hours) {
+					if (hours > 12 || hours < 0) {
+						console.log(`Invalid hour ${hours} given.`);
+						return;
+					} else {
+						date.setHours(hours);
+					}
+				}
+
 				if (seconds) {
 					if (seconds > 59 || seconds < 0) {
 						console.log(`Invalid seconds ${seconds} given.`);
@@ -124,7 +168,7 @@ function parseDate(date, day, time) {
 					} else {
 						date.setSeconds(seconds);
 					}
-				}
+				}*/
 		} else if (isNaN(timeInt)) {
 
 			} else {
@@ -172,10 +216,9 @@ module.exports = {
 		const eventName = args.shift();
 		const eventDay = args.shift();
 		const eventTime = args.shift();
+		const am_pm = args.shift();
 
-		console.log(eventTime);
-
-		const eventDate = parseDate(currentDate, eventDay, eventTime);
+		const eventDate = parseDate(currentDate, eventDay, eventTime, am_pm);
 
 		if (!eventDate) {
 			return message.reply(`Invalid event date given: ${eventDay}`);

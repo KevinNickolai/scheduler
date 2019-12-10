@@ -209,7 +209,7 @@ DatabaseManager.prototype.createTable = async function (table) {
  * @param {string} guildId the ID of the guild
  */
 DatabaseManager.prototype.addEvent = async function (event, eventId, guildId) {
-	console.log(event.date);
+
 	//extract the date from the event, and parse to get a workable date string
 	const date = event.date.toISOString().split('.')[0];
 
