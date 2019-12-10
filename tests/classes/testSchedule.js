@@ -4,6 +4,18 @@ const scheduleClass = require('../../classes/schedule.js');
 const autofireEventClass = require('../../classes/autofireEvent.js');
 
 /**
+ * Utility function that returns a basic event
+ * */
+function basicEvent() {
+
+	//event date one day ahead of the current date
+	const eventDate = new Date();
+	eventDate.setDate(eventDate.getDate() + 1);
+
+	return new autofireEventClass('test-event', eventDate);
+}
+
+/**
  * Export schedule tests
  * @param {Discord.Client} client the Discord client to be interacted with
  * @param {Chai.Assert} assert the Chai assert library used for assertion testing
@@ -36,11 +48,7 @@ module.exports = (client, assert, channelId, guildId) => {
 
 			const schedule = new scheduleClass(channelId,client,guildId);
 
-			//an event one day ahead of the current date
-			const eventDate = new Date();
-			eventDate.setDate(eventDate.getDate() + 1);
-
-			const event = new autofireEventClass('test-event', eventDate);
+			const event = basicEvent();
 
 			it('add a single event to the schedule', function (done) {
 
@@ -90,11 +98,7 @@ module.exports = (client, assert, channelId, guildId) => {
 		describe('#removeEvent()', function () {
 			const schedule = new scheduleClass(channelId, client, guildId);
 
-			//an event one day ahead of the current date
-			const eventDate = new Date();
-			eventDate.setDate(eventDate.getDate() + 1);
-
-			const event = new autofireEventClass('test-event', eventDate);
+			const event = basicEvent();
 
 			var eventIdArray = [];
 
@@ -225,10 +229,6 @@ module.exports = (client, assert, channelId, guildId) => {
 
 			const schedule = new scheduleClass(channelId, client, guildId);
 
-			//an event one day ahead of the current date
-			const eventDate = new Date();
-			eventDate.setDate(eventDate.getDate() + 1);
-
 			var event;
 			
 			var eventId;
@@ -236,7 +236,7 @@ module.exports = (client, assert, channelId, guildId) => {
 			beforeEach(function (done) {
 
 				//create a new event 
-				event = new autofireEventClass('test-event', eventDate);
+				event = basicEvent();
 
 				schedule.addEvent(event)
 					.then((id) => {
@@ -254,6 +254,9 @@ module.exports = (client, assert, channelId, guildId) => {
 
 			it('joins a single event for a given user', function (done) {
 
+				/*
+				 * verify the event acknowledges the user in its users map
+				 */
 				schedule.joinEvent(user, eventId)
 					.then((result) => {
 						assert.lengthOf(event.users, 1);
@@ -271,18 +274,18 @@ module.exports = (client, assert, channelId, guildId) => {
 				const failedEventId = -1;
 
 				schedule.removeEvent(failedEventId)
-				.then((removed) => {
-					schedule.joinEvent(user, failedEventId);
+					.then((removed) => {
+						return schedule.joinEvent(user, failedEventId);
+					}).then((result) => {
+						assert.lengthOf(event.users, 0);
 
-					assert.lengthOf(event.users, 0);
+						assert.strictEqual(user.messageError, `Event with ID ${failedEventId} does not exist.`);
 
-					assert.strictEqual(user.messageError, `Event with ID ${failedEventId} does not exist.`);
-
-					done();
-				}).catch((error) => {
-					assert.fail();
-					done(error);
-				});
+						done();
+					}).catch((error) => {
+						assert.fail();
+						done(error);
+					});
 			});
 
 			afterEach(function (done) {
@@ -336,7 +339,7 @@ module.exports = (client, assert, channelId, guildId) => {
 					});
 			});
 
-			it('fails to remove user from event that was not joined', function () {
+			it('fails to remove user from event that was not joined', function (done) {
 
 				const failedEventId = -1;
 
@@ -348,11 +351,9 @@ module.exports = (client, assert, channelId, guildId) => {
 
 						done();
 					}).catch((error) => {
+						assert.fail();
 						done(error);
 					});
-
-
-
 			});
 
 			afterEach(function (done) {

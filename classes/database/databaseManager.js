@@ -346,11 +346,6 @@ DatabaseManager.prototype.removeUser = async function (user, eventId, guildId) {
 
 					const eventDatabaseId = result[0].id;
 
-					console.log(eventDatabaseId);
-					console.log(scheduleId);
-					console.log(userId);
-
-
 					this.database.query(
 						`DELETE FROM ${this.eventMembersTable.name}
 						WHERE event_id = ${eventDatabaseId}
