@@ -98,7 +98,7 @@ class DatabaseWrapper {
 		//creation of the database if it does not already exist;
 		//if the database does exist, then the promise resolves as well.
 		return this.query(sql)
-			.catch(function (error) {
+			.catch((error) => {
 				//console.log(`Error creating database ${that.config.database}.`,error);
 
 				//if the error's code was a bad database error, we can still

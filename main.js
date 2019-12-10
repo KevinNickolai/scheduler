@@ -7,11 +7,15 @@ main();
  * Initialize the main functionality of the scheduler bot
  */
 async function main() {
+
 	/*
 	 * Login to the discord bot, verify success;
 	 * Verify the database has connection
 	 */
-	client.login(config.botToken)
+	Promise.all([
+		client.database.Init(config.dbConfig),		
+		client.login(config.botToken)
+	])
 	.then(result => {
 
 		/*

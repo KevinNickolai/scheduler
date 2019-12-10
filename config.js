@@ -15,10 +15,10 @@ const testDBConfig = {
 }
 
 const prodDBConfig = {
-	//host: process.env.PROD_DATABASE_HOST,
-	//user: process.env.PROD_DATABASE_USER,
-	//password: process.env.PROD_DATABASE_PASSWORD,
-	//database: process.env.PROD_DATABASE_NAME
+	host: process.env.PROD_DATABASE_HOST,
+	user: process.env.PROD_DATABASE_USER,
+	password: process.env.PROD_DATABASE_PASSWORD,
+	database: process.env.PROD_DATABASE_NAME
 }
 
 const DBConfig = {

@@ -4,13 +4,8 @@ const config = require('./config.js');
 const fs = require('fs');
 
 const databaseManager = require('./classes/database/databaseManager.js');
-const db = new databaseManager();
-db.Init(config.dbConfig)
-	.then((result) => {
-		client.database = db;
-	}).catch((error) => {
-		console.error('Database failed initialization.', error);
-	});
+client.database = new databaseManager();
+
 
 /**
  * Promisify directory reading, then create event handling 
