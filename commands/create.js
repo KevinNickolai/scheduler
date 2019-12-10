@@ -78,8 +78,6 @@ function parseDate(date, day, time) {
 	} else if (dayInt < 0 || dayInt > 30) {
 		console.log(`Invalid date ${dayInt} given`);
 		return;
-	} else if (dayInt < 1) {
-		date.setSeconds(date.getSeconds() + 15);
 	} else {
 		date.setDate(date.getDate() + dayInt);
 	}
@@ -101,31 +99,33 @@ function parseDate(date, day, time) {
 				const minutes = splitTime.shift();
 				const seconds = splitTime.shift();
 
-				if (hours > 12 || hours < 0) {
-					console.log(`Invalid hour ${hours} given.`);
-					return;
-				} else {
-					date.setHours(hours);
+				if (hours) {
+					if (hours > 12 || hours < 0) {
+						console.log(`Invalid hour ${hours} given.`);
+						return;
+					} else {
+						date.setHours(hours);
+					}
 				}
 
-				if (minutes > 59 || minutes < 0) {
-					console.log(`Invalid minutes ${minutes} given.`);
-					return;
-				} else {
-					date.setMinutes(minutes);
+				if (minutes) {
+					if (minutes > 59 || minutes < 0) {
+						console.log(`Invalid minutes ${minutes} given.`);
+						return;
+					} else {
+						date.setMinutes(minutes);
+					}
 				}
 
-				if (seconds > 59 || seconds < 0) {
-					console.log(`Invalid seconds ${seconds} given.`);
-					return;
-				} else {
-					date.setSeconds(seconds);
+				if (seconds) {
+					if (seconds > 59 || seconds < 0) {
+						console.log(`Invalid seconds ${seconds} given.`);
+						return;
+					} else {
+						date.setSeconds(seconds);
+					}
 				}
-
 		} else if (isNaN(timeInt)) {
-
-
-
 
 			} else {
 

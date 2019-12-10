@@ -15,10 +15,17 @@ const testDBConfig = {
 }
 
 const prodDBConfig = {
-	//host: process.env.DATABASE_HOST,
-	//user: process.env.DATABASE_USER,
-	//password: process.env.DATABASE_PASSWORD,
-	//database: process.env.DATABASE_NAME
+	//host: process.env.PROD_DATABASE_HOST,
+	//user: process.env.PROD_DATABASE_USER,
+	//password: process.env.PROD_DATABASE_PASSWORD,
+	//database: process.env.PROD_DATABASE_NAME
+}
+
+const DBConfig = {
+	host: process.env.DATABASE_HOST,
+	user: process.env.DATABASE_USER,
+	password: process.env.DATABASE_PASSWORD,
+	database: process.env.DATABASE_NAME
 }
 
 module.exports = {
@@ -27,5 +34,7 @@ module.exports = {
 	testBotToken: process.env.TEST_BOT_TOKEN,
 
 	localDBConfig: localDBConfig,
-	productionDBConfig: prodDBConfig
+	productionDBConfig: prodDBConfig,
+	dbConfig: DBConfig,
+	testDBConfig: testDBConfig
 }

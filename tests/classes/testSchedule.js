@@ -286,6 +286,7 @@ module.exports = (client, assert, channelId, guildId) => {
 						assert.fail();
 						done(error);
 					});
+
 			});
 
 			afterEach(function (done) {
