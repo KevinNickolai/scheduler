@@ -165,24 +165,35 @@ Schedule.prototype.rejoinEvent = function (user, eventId) {
  * Leave an event on the schedule
  * @param {Discord.User} user The user attempting to leave the event
  * @param {number} eventId The ID of the event to leave
+ * @returns {Promise} A promise that resolves when the user has left the event
  */
 Schedule.prototype.leaveEvent = function (user, eventId) {
-	const event = this.events.get(eventId);
 
-	if (event) {
+	return new Promise((resolve, reject) => {
 
-		this.client.database.removeUser(user, eventId, this.guildId)
-			.then((result) => {
-				event.removeUser(user);
-			});
-	} else {
+		const event = this.events.get(eventId);
 
-		const error = `Event with ID ${eventId} does not exist.`;
+		if (event) {
 
-		user.messageError = error;
+			this.client.database.removeUser(user, eventId, this.guildId)
+				.then((result) => {
+					event.removeUser(user);
+					return resolve();
+				}).catch(error => {
+					return reject(error);
+				});
+		} else {
 
-		user.send(error);
-	}
+			const error = `Event with ID ${eventId} does not exist.`;
+
+			user.messageError = error;
+
+			user.send(error);
+
+			return resolve();
+		}
+	});
+
 }
 
 /**

@@ -310,45 +310,53 @@ module.exports = (client, assert, channelId, guildId) => {
 				schedule.addEvent(event)
 					.then((id) => {
 
-						schedule.joinEvent(user, id);
+						eventId = id;
 
+						return schedule.joinEvent(user, id);
+					}).then((result) => {
 						assert.lengthOf(schedule.events, 1);
 						assert.lengthOf(event.users, 1);
 
 						user.messageError = '';
+						done();
+					}).catch ((error) => {
+						done(error);
+					});
+			});
 
-						eventId = id;
+			it('removes a user from an event', function (done) {
+
+				//console.log(eventId);
+				schedule.leaveEvent(user, eventId)
+					.then((result) => {
+						assert.lengthOf(event.users, 0);
 						done();
 					}).catch((error) => {
 						done(error);
 					});
-
-
-			});
-
-			it('removes a user from an event', function () {
-
-				//console.log(eventId);
-				schedule.leaveEvent(user, eventId);
-
-				assert.lengthOf(event.users, 0);
-
 			});
 
 			it('fails to remove user from event that was not joined', function () {
 
 				const failedEventId = -1;
 
-				schedule.leaveEvent(user, failedEventId);
+				schedule.leaveEvent(user, failedEventId)
+					.then((result) => {
+						assert.lengthOf(event.users, 1);
 
-				assert.lengthOf(event.users, 1);
+						assert.strictEqual(user.messageError, `Event with ID ${failedEventId} does not exist.`);
 
-				assert.strictEqual(user.messageError, `Event with ID ${failedEventId} does not exist.`);
+						done();
+					}).catch((error) => {
+						done(error);
+					});
+
+
 
 			});
 
-			afterEach(function () {
-				schedule.clearEvents();
+			afterEach(function (done) {
+				schedule.clearEvents().then(done);
 			});
 
 		});
