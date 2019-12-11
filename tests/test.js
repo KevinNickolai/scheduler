@@ -19,8 +19,10 @@ before(function (done) {
 
 	this.timeout(10000);
 
-	client.login(config.testBotToken)
-		.then(result => {
+	Promise.all([
+		client.database.Init(config.localDBConfig),
+		client.login(config.testBotToken)
+	]).then(result => {
 
 			client.scheduler.forEach((schedule, guildId) => {
 				client.database.setSchedule(schedule, guildId);
