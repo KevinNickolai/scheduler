@@ -76,6 +76,27 @@ class DatabaseManager {
 }
 
 /**
+ * Check if an event id exists for a given guild
+ * @param {number} eventId The ID of the event to check existence for
+ * @param {string} guildId The ID of the guild to check for event existence
+ * @returns {Promise<boolean>} a promise that resolves with true if event exists, false otherwise.
+ */
+DatabaseManager.prototype.hasEvent = function (eventId, guildId) {
+
+	return new Promise((resolve, reject) => {
+
+		const sql =
+			`SELECT * FROM ${this.schedulesTable.name} 
+		WHERE guild_id = ${guildId};` //<TODO: Turn this statement into JOIN
+
+		/*
+		 * query the database to determine if an event exists
+		 */
+	});
+
+}
+
+/**
  * Set a schedule based on its guildId
  * @param {Schedule} schedule The schedule to set, based on the database information
  * @param {string} guildId The ID of the guild we are setting the schedule for
