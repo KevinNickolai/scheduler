@@ -83,15 +83,41 @@ class DatabaseManager {
  */
 DatabaseManager.prototype.hasEvent = function (eventId, guildId) {
 
+	const that = this;
+
 	return new Promise((resolve, reject) => {
 
+		/*
+		 * get the schedule id based on the server we're checking event existence for
+		 */
 		const sql =
-			`SELECT * FROM ${this.schedulesTable.name} 
+			`SELECT id FROM ${that.schedulesTable.name} 
 		WHERE guild_id = ${guildId};` //<TODO: Turn this statement into JOIN
 
 		/*
 		 * query the database to determine if an event exists
 		 */
+		that.database.query(sql)
+			.then((result) => {
+				const scheduleId = result[0].id;
+
+				/*
+				 * attempt retrieval of an event that matches the eventId
+				 */
+				return that.database.query(
+					`SELECT id FROM ${that.eventTable.name}
+					WHERE schedule_id=${scheduleId}
+					AND event_id=${eventId};`
+				).then((result) => {
+
+					//return success or failure based on whether a result was retrieved.
+					return resolve(result.length > 0);
+
+				}).catch((error) => {
+					console.log(error);
+					return reject(error);
+				});
+			});
 	});
 
 }

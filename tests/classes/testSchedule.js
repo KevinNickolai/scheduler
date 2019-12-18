@@ -63,8 +63,13 @@ module.exports = (client, assert, channelId, guildId) => {
 						assert.hasAllKeys(schedule.events, eventId);
 						assert.lengthOf(schedule.events, 1);
 
+						return client.database.hasEvent(eventId, guildId);
+
+					}).then((eventExists) => {
+						assert.isTrue(eventExists);
+
 						done();
-					}).catch((error) => {
+					}).catch ((error) => {
 						done(error);
 					});
 
