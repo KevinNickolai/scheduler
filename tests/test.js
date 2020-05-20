@@ -33,7 +33,7 @@ before(function (done) {
 
 			/*
 			* Checking channel existences, for message purposes
-			**/
+			*/
 			assert.property(testGuild1, 'channels');
 
 			assert.hasAllKeys(testGuild1.channels, [correctChannelId, wrongChannelId]);
@@ -69,6 +69,10 @@ before(function (done) {
 		});
 });
 
+/*
+ * Run all test module tests
+ * TODO: modularize all tests to only need client & assert library, or maybe just client.
+ */
 describe('Start testing', function () {
 
 	it('Test Events',function () {
@@ -82,6 +86,7 @@ describe('Start testing', function () {
 	it('Test Classes', function () {
 		require('./classes/testSchedule.js')(client, assert, correctChannel.id, testGuild1.id);
 		require('./classes/testScheduleEvent.js')(client, assert);
+		require('./classes/testParseDate.js')(client, assert);
 	});
 });
 
