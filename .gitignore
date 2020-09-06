@@ -6,3 +6,7 @@ SchedulerBot.njsproj
 
 instructions.txt
 todo.txt
+obj/Debug/SchedulerBot.njsprojAssemblyReference.cache
+obj/Debug/SchedulerBot.njsproj.CoreCompileInputs.cache
+obj/Debug/SchedulerBot.njsproj.FileListAbsolute.txt
+bin/Microsoft.NodejsTools.WebRole.dll
