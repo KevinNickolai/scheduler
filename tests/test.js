@@ -24,49 +24,63 @@ before(function (done) {
 		client.login(config.testBotToken)
 	]).then(result => {
 
+		//console.log(client);
+
 			client.scheduler.forEach((schedule, guildId) => {
 				client.database.setSchedule(schedule, guildId);
 			});
 
-			testGuild1 = client.guilds.get('606933279060393984');
-			testGuild2 = client.guilds.get('606933327295021057');
+			testGuild1 = client.guilds.cache.get('606933279060393984');
+			testGuild2 = client.guilds.cache.get('606933327295021057');
 
 			/*
 			* Checking channel existences, for message purposes
 			*/
 			assert.property(testGuild1, 'channels');
 
-			assert.hasAllKeys(testGuild1.channels, [correctChannelId, wrongChannelId]);
+			assert.hasAllKeys(testGuild1.channels.cache, [correctChannelId, wrongChannelId]);
 
 			assert.property(client, 'guilds');
-			assert.lengthOf(client.guilds, 2);
+			assert.lengthOf(client.guilds.cache, 2);
 
 			//keys of the two test servers the bot is located in
-			assert.hasAllKeys(client.guilds, [testGuild1.id, testGuild2.id]);
+			assert.hasAllKeys(client.guilds.cache, [testGuild1.id, testGuild2.id]);
 
 			//assert the bot's user ID is correct
 			assert.isTrue(client.user.id === '606933041553866775');
 
-			client.guilds.forEach((guild) => {
 
-				assert.property(guild, 'members');
-				assert.lengthOf(guild.members, 2);
 
+			
+		var promises = client.guilds.cache.mapValues((guild) => {
+			return guild.members.fetch();
+		});
+
+		//var t = guild.members.fetch();
+				//t.then(console.log);
+				//assert.strictEqual(2, guild.memberCount);
+				//assert.property(guild, 'members');
+				//assert.lengthOf(guild.members.cache, 2);
+				/*
 				assert.hasAllKeys(guild.members,
 					['145786944297631745',		//< User to interact with test messages
 						'606933041553866775']);	//< the bot running on the server
-
-			});
+						*/
 			
-			correctChannel = testGuild1.channels.get(correctChannelId);
-			wrongChannel = testGuild1.channels.get(wrongChannelId);
-		})
-		.catch(error => {
-			return done(error);
+			correctChannel = testGuild1.channels.cache.get(correctChannelId);
+			wrongChannel = testGuild1.channels.cache.get(wrongChannelId);
+
+		return Promise.all(promises);
+
 		})
 		.then(result => {
+			console.log(result);
 			done();
+		})
+		.catch(error => {
+			done(error);
 		});
+		
 });
 
 /*

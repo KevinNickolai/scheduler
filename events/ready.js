@@ -5,6 +5,10 @@ const schedulerChannelName = 'events';
  * */
 const Schedule = require('../classes/schedule.js');
 
+/**
+ * 
+ * @param {} client
+ */
 module.exports = (client) => {
 
 	var schedulerMap = new Map();
@@ -14,9 +18,9 @@ module.exports = (client) => {
      * create a scheduling channel if not already existing, and then
 	 * create a mapping for each server to their own unique schedule.
 	 * */
-	client.guilds.forEach(async (guild) => {
+	client.guilds.cache.forEach(async (guild) => {
 
-		var schedulerChannel = guild.channels.find(channel => channel.name === schedulerChannelName);
+		var schedulerChannel = guild.channels.cache.find(channel => channel.name === schedulerChannelName);
 
 		if (!schedulerChannel) {
 			schedulerChannel = await guild.createChannel(schedulerChannelName, { type: 'text' })
@@ -41,5 +45,5 @@ module.exports = (client) => {
 		console.log(`Logged in as ${client.user.tag}!`);
 	}
 
-	console.log(`Schedulers initialized for ${client.guilds.size} servers.`);
+	console.log(`Schedulers initialized for ${client.guilds.cache.size} servers.`);
 }
