@@ -1,4 +1,6 @@
 node_modules/
+src/
+build/
 SchedulerBot.njsproj
 .vs/SchedulerBot/v15/.suo
 .env

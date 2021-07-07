@@ -1,6 +1,7 @@
-const client = require('./client.js');
-const config = require('./config.js');
-
+import SchedulerClient from "./classes/SchedulerClient";
+import * as clientImport from "./client";
+import * as config from "./config";
+let client = clientImport.default;
 main();
 
 /*
@@ -13,10 +14,10 @@ async function main() {
 	 * Verify the database has connection
 	 */
 	Promise.all([
-		client.database.Init(config.dbConfig),		
+		client.database.Init(config.default.DBConfig),
 		client.login(config.botToken)
 	])
-	.then(result => {
+	.then(() => {
 
 		/*
 		* After proper connections, fill any schedules 
@@ -29,7 +30,7 @@ async function main() {
 		//forEach schedule, populate with events in the database
 		console.log('Initialized database and logged in!');
 
-	}).catch(err => {
+	}).catch((err : Error) => {
 		console.log(err);
 		process.exit(1);
 	});

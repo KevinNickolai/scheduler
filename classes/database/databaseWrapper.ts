@@ -1,17 +1,20 @@
-﻿const mysql = require('mysql');
-
+﻿import * as mysql from "mysql";
+import * as configuration from "../../config"
 /*
 * class that wraps a mysql database into utilizing promises
 * class inspiration found here:
 * https://codeburst.io/node-js-mysql-and-promises-4c3be599909b
 */
-class DatabaseWrapper {
+export class DatabaseWrapper {
+	
+	protected readonly config: configuration.IDBConfigLayout;
+	private connection: mysql.Connection;
 
 	/**
 	* DatabaseWrapper constructor
 	* @param {Object} config Configuration setup for a mysql connection
 	*/
-	constructor(config) {
+	constructor(config: configuration.IDBConfigLayout) {
 		this.config = config;
 		this.connection = mysql.createConnection(config);
 
@@ -28,46 +31,21 @@ class DatabaseWrapper {
 		});
 	}
 
-	/**
-	* Handles disconnection from the database at any time
-	* solution to problem found here:
-	* https://stackoverflow.com/questions/20210522/nodejs-mysql-error-connection-lost-the-server-closed-the-connection
-	*/
-	handleDisconnect() {
-		this.connection = mysql.createConnection(this.config);
 
-		var that = this;
-
-		this.connection.connect(function (err) {
-			if (err) {
-				console.log("Error when reconnecting to database: ", err);
-				setTimeout(that.handleDisconnect, 2000);
-			}
-		});
-
-		this.connection.on('error', function (err) {
-			console.log("Database Error", err);
-			if (err.code === 'PROTOCOL_CONNECTION_LOST') {
-				that.handleDisconnect();
-			} else {
-				throw err;
-			}
-		});
-	}
 
 	/**
 	* Query the database
 	* @param {string} sql An SQL query to send to the database
-	* @param {Array} args An array of arguments to pass with the SQL statement
+	* @param {string[]} args An array of arguments to pass with the SQL statement
 	*				      defaulted to undefined
 	* @return {Promise} a promise object to resolve or reject on database querying completion
 	*/
-	query(sql, args) {
+	public query(sql: string, args?: string[]) : Promise<any> {
 		return new Promise((resolve, reject) => {
-			this.connection.query(sql, args, (err, rows) => {
-				if (err) return reject(err);
+			this.connection.query(sql, args, (err, results: any, rows: mysql.FieldInfo[] | undefined) => {
+				if (err) { return reject(err); }
 
-				return resolve(rows);
+				return resolve(results);
 			});
 		});
 	}
@@ -75,7 +53,7 @@ class DatabaseWrapper {
 	/*
 	* Close the database connection when done with database querying
 	*/
-	close() {
+	public close() : Promise<void>{
 		return new Promise((resolve, reject) => {
 			this.connection.end(err => {
 				if (err) return reject(err);
@@ -88,7 +66,7 @@ class DatabaseWrapper {
 	/*
 	* Initialize the databaseWrapper to allow for error free querying
 	*/
-	async init() {
+	public async init() : Promise<mysql.FieldInfo[] | mysql.MysqlError | void | undefined> {
 
 		var sql = `CREATE DATABASE IF NOT EXISTS ${this.config.database};`;
 
@@ -111,7 +89,7 @@ class DatabaseWrapper {
 					//create a new connection with an undefined database, preventing
 					//another ER_BAD_DB_ERROR
 					that.config.database = undefined;
-					that.connection = mysql.createConnection(that.config)
+					that.connection = mysql.createConnection(that.config);
 
 					//return a promise of success or failure of the creation of
 					//the database from this point on
@@ -124,7 +102,7 @@ class DatabaseWrapper {
 
 							that.connection.changeUser({
 								database: that.config.database
-							}, (err, rows) => {
+							}, (err : mysql.MysqlError) => {
 								if (err) {
 									//on error of changing the database for the current connection,
 									//the promise should be rejected, as the database is needed
@@ -134,9 +112,9 @@ class DatabaseWrapper {
 								}
 
 								//the database change succeeded
-								return Promise.resolve(rows);
+								return Promise.resolve();
 							});
-						}).catch(function (err) {
+						}).catch(function (err: mysql.MysqlError) {
 
 							//querying the connection without a database for database creation failed,
 							//so reject the promise.
@@ -174,6 +152,31 @@ class DatabaseWrapper {
 			});
 		})*/
 	}
-}
 
-module.exports = DatabaseWrapper;
+	/**
+	* Handles disconnection from the database at any time
+	* solution to problem found here:
+	* https://stackoverflow.com/questions/20210522/nodejs-mysql-error-connection-lost-the-server-closed-the-connection
+	*/
+	protected handleDisconnect() {
+		this.connection = mysql.createConnection(this.config);
+
+		var that = this;
+
+		this.connection.connect(function (err) {
+			if (err) {
+				console.log("Error when reconnecting to database: ", err);
+				setTimeout(that.handleDisconnect, 2000);
+			}
+		});
+
+		this.connection.on('error', function (err) {
+			console.log("Database Error", err);
+			if (err.code === 'PROTOCOL_CONNECTION_LOST') {
+				that.handleDisconnect();
+			} else {
+				throw err;
+			}
+		});
+	}
+}

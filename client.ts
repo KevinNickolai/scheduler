@@ -1,11 +1,8 @@
-﻿const Discord = require('discord.js');
-const client = new Discord.Client();
+﻿import * as Discord from "discord.js";
+import SchedulerClient from "./classes/SchedulerClient";
+const client = new SchedulerClient();
 const config = require('./config.js');
 const fs = require('fs');
-
-const databaseManager = require('./classes/database/databaseManager.js');
-client.database = new databaseManager();
-
 
 /**
  * Promisify directory reading, then create event handling 
@@ -18,9 +15,8 @@ const readdirAsync = promisify(fs.readdir);
 /*
  * Read in commands from the commands directory
  */
-client.commands = new Discord.Collection;
 readdirAsync('./commands')
-	.then((files) => {
+	.then((files : string[]) => {
 		const commandFiles = files.filter(file => file.endsWith('.js'));
 
 		commandFiles.forEach(file => {
@@ -29,7 +25,7 @@ readdirAsync('./commands')
 			client.commands.set(command.name, command);
 		});
 	})
-	.catch((error) => {
+	.catch((error : Error) => {
 		console.log(error);
 	});
 
@@ -37,21 +33,21 @@ readdirAsync('./commands')
  * Read in events from the events directory
  */
 readdirAsync('./events')
-	.then((files) => {
+	.then((files : string[]) => {
 		//console.log(files);
 		files.forEach(file => {
 			const eventHandler = require(`./events/${file}`);
-			const eventName = file.split('.')[0];
-
-			if (eventName === 'ready') {
-				client.once(eventName, (...args) => eventHandler(client, ...args));
+			const eventName = file.split(".")[0];
+			
+			if (eventName === "ready") {
+				client.once(eventName, (...args : any[]) => eventHandler(client, ...args));
 			} else {
-				client.on(eventName, (...args) => eventHandler(client, ...args));
+				client.on(eventName, (...args : any[]) => eventHandler(client, ...args));
 			}
 		});
 	})
-	.catch((error) => {
+	.catch((error : Error) => {
 		console.log(error);
 	});
 
-module.exports = client;
+export default client;

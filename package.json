@@ -4,8 +4,10 @@
  "description": "A bot that schedules events",
  "main": "main.js",
  "scripts": {
-  "start": "node main.js",
-  "dev": "nodemon main.js",
+  "start": "node ./build/index.js",
+  "dev": "nodemon ./build/index.js",
+  "build": "tsc --build",
+  "clean": "tsc --build --clean",
   "test": "mocha -w ./tests",
   "testDebug": "mocha -R list"
  },
@@ -18,6 +20,8 @@
   "mysql": "^2.18.1"
  },
  "devDependencies": {
+  "@types/mysql": "^2.15.18",
+  "@types/node": "^16.0.0",
   "chai": "^4.3.4",
   "mocha": "^6.2.3",
   "nodemon": "^1.19.4",
