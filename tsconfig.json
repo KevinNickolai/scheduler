@@ -18,6 +18,8 @@
 	"exclude": [
 		"node_modules",
 		"src",
-		"build"
+		"build",
+		"test/*",
+		"test"
 	]
 }
