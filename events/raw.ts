@@ -1,4 +1,4 @@
-﻿module.exports = (client, packet) => {
+﻿module.exports = (client:any, packet:any) => {
 
     //example for extraction data with raw
     //https://github.com/AnIdiotsGuide/discordjs-bot-guide/blob/master/coding-guides/raw-events.md

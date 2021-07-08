@@ -1,7 +1,7 @@
 ﻿import * as Discord from "discord.js";
 import SchedulerClient from "./classes/SchedulerClient";
 const client = new SchedulerClient();
-const config = require('./config.js');
+//const config = require('./config.js');
 const fs = require('fs');
 
 /**
@@ -35,7 +35,9 @@ readdirAsync('./commands')
 readdirAsync('./events')
 	.then((files : string[]) => {
 		//console.log(files);
-		files.forEach(file => {
+		const eventFiles = files.filter(file => file.endsWith('.js'));
+
+		eventFiles.forEach(file => {
 			const eventHandler = require(`./events/${file}`);
 			const eventName = file.split(".")[0];
 			

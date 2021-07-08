@@ -5,7 +5,7 @@ const parseDate = require('../classes/parseDate.js');
 
 module.exports = {
 	name: 'create',
-	aliases: ['add', 'cmds'],
+	aliases: ['add', 'cmds', 'make', 'c'],
 	description: "Add an event to the schedule.",
 	usage: "event-type event-name date time",
 	args: true,
@@ -43,7 +43,7 @@ module.exports = {
 		 * Create the event based on user input
 		 * TODO: add user customization for event type using args
 		 */
-		const autofire = new autofireCreator(eventName, eventDate);
+		const autofire = new autofireCreator.AutofireEvent(eventName, eventDate);
 
 		schedule.addEvent(autofire)
 			.then((eventId) => {

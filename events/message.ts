@@ -1,4 +1,7 @@
-module.exports = (client, message) => {
+import SchedulerClient from "../classes/SchedulerClient";
+import * as Discord from "discord.js";
+
+module.exports = (client : SchedulerClient, message: Discord.Message) => {
 
 	const { prefix } = require('../config.js');
 
@@ -6,7 +9,7 @@ module.exports = (client, message) => {
 
 	//making sure the message is in the correct channel
 	if (message.guild &&
-		client.scheduler.get(message.guild.id).channelId !== message.channel.id) {
+		client.scheduler.get(message.guild.id!)!.channelId !== message.channel.id) {
 		return;
 	}
 
@@ -16,11 +19,11 @@ module.exports = (client, message) => {
 	//split up the message into arguments, with whitespace as the delimiter,
 	//while also removing the command prefix from the message
 	const args = message.content.slice(prefix.length).split(/ +/);
-	const commandName = args.shift().toLowerCase();
+	const commandName = args.shift()!.toLowerCase();
 
 	//retrieve a command that has a name or alias of commandName
 	const command = client.commands.get(commandName)
-		|| client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+		|| Array.from<any>(client.commands.values()).find((cmd: any) => cmd.aliases && cmd.aliases.includes(commandName));
 
 	const user = message.author;
 
@@ -29,7 +32,7 @@ module.exports = (client, message) => {
 
 		const commandError = "No command '" + commandName + "' exists.";
 
-		client.messageError = commandError
+		client.messageError = commandError;
 
 		return user.send(commandError);
 	}

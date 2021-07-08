@@ -11,11 +11,13 @@
 		"esModuleInterop": true,
 		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,
-		"outDir": "build"
+		"outDir": "build",
+		"allowJs": true
 	},
-	"include": ["./*.ts", "./*/*.js", "classes/database/databaseWrapper.ts", "classes/scheduleEvent.ts", "classes/autofireEvent.ts", "classes/schedule.ts"],
+	"include": ["./*.ts", "./commands/*.js", "classes/database/*.ts", "classes/*.ts", "events/*.ts"],
 	"exclude": [
 		"node_modules",
-		"src"
+		"src",
+		"build"
 	]
 }

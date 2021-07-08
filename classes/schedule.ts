@@ -11,7 +11,7 @@ export class Schedule {
 	public readonly MAX_EVENTS: number = 100;
 
 	public readonly events: Map<number, ScheduleEvent>;
-	public readonly channelId: string;
+	public channelId: string;
 	public readonly guildId: string;
 
 	public readonly client: SchedulerClient;
@@ -29,6 +29,13 @@ export class Schedule {
 		this.client = client;
 	}
 
+	public hasEvent(eventId: number): boolean {
+		return this.events.has(eventId);
+	}
+
+	public eventHasUser(eventId: number, user: Discord.User): boolean {
+		return this.events.has(eventId) ? this.events.get(eventId)!.users.has(user.id) : false;
+	}
 
 	/**
 	* Add an event to the schedule
@@ -79,7 +86,7 @@ export class Schedule {
 	 * @param {ScheduleEvent} event The event to add to the schedule
 	 * @returns {Promise<number>} A promise resolving with the ID of the event added, -1 if unsuccessful to add
 	 */
-	addEvent (event: ScheduleEvent) : Promise<number> {
+	public addEvent (event: ScheduleEvent) : Promise<number> {
 		return this.add(event, this.generateEventId());
 	}
 
@@ -90,7 +97,7 @@ export class Schedule {
 	 * @param {number} eventId The ID of the event added
 	 * @returns {Promise<number>} A promise resolving with the ID of the event added, -1 if unsuccessful to add
 	 */
-	readdEvent(event : ScheduleEvent, eventId: number) : Promise<number> {
+	public readdEvent(event : ScheduleEvent, eventId: number) : Promise<number> {
 		return this.add(event, eventId, false);
 	}
 
@@ -131,7 +138,7 @@ export class Schedule {
 	 * @param {number} eventId The ID of the event that the user is joining
 	 * @returns {Promise} A promise that resolves when the user has been added to the event
 	 */
-	joinEvent(user: Discord.User, eventId: number) : Promise<void> {
+	public joinEvent(user: Discord.User, eventId: number) : Promise<void> {
 
 		return new Promise((resolve, reject) => {
 			const event = this.events.get(eventId);
