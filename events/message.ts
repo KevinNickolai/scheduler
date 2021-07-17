@@ -34,7 +34,7 @@ module.exports = (client : SchedulerClient, message: Discord.Message) => {
 				.then((role: Discord.Role | null) => {
 
 					if (role === null || !role.members.find((usr: Discord.GuildMember) => usr.user.id === message.author.id)) {
-						return;
+						return message.reply("You need to be in the role to shortcut notify its users.");
 					}
 
 					message.reply(`${commandName} shortcut called.`);
