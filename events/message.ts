@@ -28,13 +28,39 @@ module.exports = (client : SchedulerClient, message: Discord.Message) => {
 	const user = message.author;
 
 	if (!command) {
-		//console.log("No command '" + commandName + "' exists.");
 
-		const commandError = "No command '" + commandName + "' exists.";
+		if (client.shortcuts.get(commandName) && message.guild) {
+			message.guild.roles.fetch(client.shortcuts.get(commandName)!)
+				.then((role: Discord.Role | null) => {
+
+					if (role === null) {
+						return;
+					}
+
+					message.reply(`${commandName} shortcut called.`);
+
+					role.members.flatMap((member: Discord.GuildMember, id: string, coll: Discord.Collection<string, Discord.GuildMember>) => {
+						let reason = args.join(" ");
+
+						let msgTxt = `${message.author} invited the ${role.name} role to an event on ${message.guild!.name} right now!`;
+						if (reason !== "") {
+							msgTxt += `\nReason: ${reason}`;
+						}
+
+						member.user.send(msgTxt);
+						return coll;
+					});
+
+				});
+
+			return;
+		}
+
+		const commandError = "No command or shortcut '" + commandName + "' exists.";
 
 		client.messageError = commandError;
 
-		return user.send(commandError);
+		return message.reply(commandError);
 	}
 
 	//Checking for arguments if a command requires arguments to be present
@@ -42,11 +68,11 @@ module.exports = (client : SchedulerClient, message: Discord.Message) => {
 		//TODO: Add potential check here for existence of a usage help prompt, if the command
 		//in question has a usage property.
 
-		const argError = "You must provide arguments for the " + commandName + " command."
+		const argError = "You must provide arguments for the " + commandName + " command.";
 
 		client.messageError = argError;
 
-		return user.send(argError);
+		return message.reply(argError);
 	}
 
 	//checking for a server unique command, which requires the command be sent in the server to schedule.
@@ -55,10 +81,17 @@ module.exports = (client : SchedulerClient, message: Discord.Message) => {
 			"This bot supports multiple servers; use the scheduler in the server you would like to schedule events for."
 		);
 
+
+	if (command.permissions && message.member) {
+		if (!message.member.hasPermission(command.permissions)) {
+			return message.reply("You are missing one or more permissions to execute this command.");
+		}
+	}
+
 	try {
 		command.execute(message, args);
 	} catch (error) {
 		console.error("Error processing command " + commandName + ":", error);
-		return user.send("Error processing command '" + commandName + "'.");
+		return message.reply("Error processing command '" + commandName + "'.");
 	}
 }

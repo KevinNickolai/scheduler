@@ -14,10 +14,10 @@
  "author": "Kevin Nickolai",
  "license": "ISC",
  "dependencies": {
-  "datejs": "^1.0.0-rc3",
   "discord.js": "^12.5.3",
   "dotenv": "^8.6.0",
-  "mysql": "^2.18.1"
+  "mysql": "^2.18.1",
+  "strongly-typed-events": "^2.1.7"
  },
  "devDependencies": {
   "@types/mysql": "^2.15.18",

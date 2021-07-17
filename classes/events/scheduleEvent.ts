@@ -1,4 +1,5 @@
 import * as Discord from "discord.js";
+import { EventDispatcher, IEvent } from "ste-events";
 
 /**
  * Abstract class defining a base event that
@@ -6,18 +7,28 @@ import * as Discord from "discord.js";
  * */
 export abstract class ScheduleEvent {
 
+
+	private _usersChanged = new EventDispatcher<ScheduleEvent, Discord.User>();
+
+	public get onEventsChanged(): IEvent<ScheduleEvent, Discord.User> {
+		return this._usersChanged.asEvent();
+	}
+
 	public readonly name: string;
 	public readonly date: Date;
 	public readonly users: Map<string, Discord.User>;
+
+	public readonly owner: Discord.User;
 
 	public timeout: NodeJS.Timeout | undefined;
 
 	/**
 	 * constructor for a ScheduleEvent
+	 * @param {Discord.User} owner the creator and owner of the event
 	 * @param {string} name The name of the event
 	 * @param {Date} date The date of the event
 	 */
-	constructor(name = 'default event name', date = new Date()) {
+	constructor(owner: Discord.User, name = 'default event name', date = new Date()) {
 
 		//disables ScheduleEvent instantiation, making it abstract
 		if (new.target === ScheduleEvent) {
@@ -25,15 +36,17 @@ export abstract class ScheduleEvent {
 		}
 
 		//require override of method displayEvent()
-		if ((typeof this.displayEvent) != "function") {
+		if ((typeof this.displayEvent) !== "function") {
 			throw new TypeError("Must override method displayEvent()");
 		}
 
 		this.name = name;
 		this.date = date;
+		this.owner = owner;
 		this.timeout;
 
 		this.users = new Map<string, Discord.User>();
+		this.users.set(owner.id, owner);
 	}
 
 	public abstract displayEvent(): void;
@@ -42,11 +55,12 @@ export abstract class ScheduleEvent {
 	* Add a user to the event
 	* @param {Discord.User} user The discord user to add to the event
 	*/
-	public addUser (user: Discord.User) {
+	public addUser(user: Discord.User) {
 
 		//if the user attempting to join isn't already in the event
 		if (!this.users.has(user.id)) {
 			this.users.set(user.id, user);
+			this._usersChanged.dispatch(this, user);
 			user.send(`You have joined event ${this.name}.`);
 		} else {
 			user.send(`You've already joined event ${this.name}!`);
@@ -69,7 +83,13 @@ export abstract class ScheduleEvent {
 	public removeUser(user: Discord.User) {
 		const success = this.users.delete(user.id);
 
-		success ? user.send(`You have left event ${this.name}.`) : user.send(`You never joined event ${this.name}!`);
+		if (success) {
+			user.send(`You have left event ${this.name}.`);
+			this._usersChanged.dispatch(this, user);
+		}
+		else {
+			user.send(`You never joined event ${this.name}!`);
+		}
 	}
 
 	/**

@@ -3,10 +3,9 @@ import { DatabaseWrapper } from "./databaseWrapper";
 import * as mysql from "mysql";
 import SchedulerClient from "../SchedulerClient";
 import { Schedule } from "../schedule";
-import { ScheduleEvent } from "../scheduleEvent";
+import { ScheduleEvent } from "../events/scheduleEvent";
 import { IDBConfigLayout } from "../../config";
-
-const autofireEvent = require('../autofireEvent.js');
+import { AutofireEvent } from "../events/autofireEvent";
 
 export namespace DatabaseManager {
 
@@ -50,27 +49,36 @@ export namespace DatabaseManager {
 			PRIMARY KEY (id)
 			)`);
 
+			this.users = new Table("users",
+				`(id INT NOT NULL AUTO_INCREMENT,
+			user_id VARCHAR(18) NOT NULL,
+			username VARCHAR(32) NOT NULL,
+			discriminator VARCHAR(4) NOT NULL,
+			PRIMARY KEY (id),
+			KEY idx_users_user_id (user_id)
+			);`);
+			
 			this.events = new Table("events",
 				`(id INT NOT NULL AUTO_INCREMENT,
 			schedule_id INT NOT NULL,
 			event_id SMALLINT NOT NULL,
 			event_name VARCHAR(128) NOT NULL,
 			event_date DATETIME NOT NULL,
+			event_owner VARCHAR(18) NOT NULL,
 			PRIMARY KEY (id),
+			UNIQUE KEY unique_event (schedule_id,event_id),
+			KEY events_ibfk_2_idx (event_owner),
 			CONSTRAINT unique_event UNIQUE (schedule_id, event_id),
 			FOREIGN KEY (schedule_id)
 			REFERENCES ${this.schedules.name}(id)
 			ON UPDATE CASCADE
+			ON DELETE CASCADE,
+			CONSTRAINT events_ibfk_2
+			FOREIGN KEY (event_owner)
+			REFERENCES ${this.users.name}(user_id)
+			ON UPDATE CASCADE
 			ON DELETE CASCADE
 			)`);
-
-			this.users = new Table("users",
-				`(id INT NOT NULL AUTO_INCREMENT,
-			user_id VARCHAR(18) NOT NULL,
-			username VARCHAR(32) NOT NULL,
-			discriminator VARCHAR(4) NOT NULL,
-			PRIMARY KEY (id)
-			);`);
 
 			this.eventMembers = new Table("members",
 				`(event_id INT NOT NULL,
@@ -188,6 +196,8 @@ export namespace DatabaseManager {
 			WHERE schedule_id = ${scheduleId};`
 				).then((result) => {
 
+					console.log(result);
+
 					/*
 					 * Process events' data, put into schedule
 					 */
@@ -198,52 +208,59 @@ export namespace DatabaseManager {
 						 * Enum?
 						 */
 
-						/*
-						 * recreate the event from the database;
-						 * the date has an ISO representation of milliseconds + timezone character at the end, so that
-						 * the date may be interpreted without offset here, as it was interpreted that way when being placed into the database
-						 */
-						const event = new autofireEvent(eventData.event_name, new Date(eventData.event_date + `.000z`));
-						schedule.readdEvent(event, eventData.event_id);
-
-						/*
-						 * Add users to the events
-						 */
-						this.database!.query(
-							`SELECT user_id FROM ${this.eventMembers.name}
-					WHERE event_id = ${eventData.id}
-					AND schedule_id = ${scheduleId};`
-						).then((result) => {
+						client.users.fetch(eventData.event_owner)
+							.then((owner: Discord.User) => {
 
 							/*
-							 * Get user info to create the Discord.User object
+							 * recreate the event from the database;
+							 * the date has an ISO representation of milliseconds + timezone character at the end, so that
+							 * the date may be interpreted without offset here, as it was interpreted that way when being placed into the database
 							 */
-							result.forEach((memberId: any) => {
+							const event = new AutofireEvent(owner, eventData.event_name, new Date(eventData.event_date + `.000z`));
+							schedule.readdEvent(event, eventData.event_id);
 
-								this.database!.query(
-									`SELECT * FROM ${this.users.name}
+							//console.log(schedule);
+
+							/*
+							 * Add users to the events
+							 */
+							this.database!.query(
+								`SELECT user_id FROM ${this.eventMembers.name}
+					WHERE event_id = ${eventData.id}
+					AND schedule_id = ${scheduleId};`
+							).then((result) => {
+
+								/*
+								 * Get user info to create the Discord.User object
+								 */
+								result.forEach((memberId: any) => {
+
+									this.database!.query(
+										`SELECT * FROM ${this.users.name}
 							WHERE id = ${memberId.user_id};`
-								).then((result) => {
-									result.forEach((userData: any) => {
-										const user = new Discord.User(client, {
-											id: `${userData.user_id}`,
-											username: `${userData.username}`,
-											discriminator: `${userData.discriminator}`,
-											bot: false
+									).then((result) => {
+										result.forEach((userData: any) => {
+											const user = new Discord.User(client, {
+												id: `${userData.user_id}`,
+												username: `${userData.username}`,
+												discriminator: `${userData.discriminator}`,
+												bot: false
+											});
+
+											/*
+											 * Add the user to the event they were previously in
+											 */
+											schedule.rejoinEvent(user, eventData.event_id);
 										});
-
-										/*
-										 * Add the user to the event they were previously in
-										 */
-										schedule.rejoinEvent(user, eventData.event_id);
 									});
-								});
 
+								});
+							}).catch((error) => {
+								console.error(error);
+								process.exit(0);
 							});
-						}).catch((error) => {
-							console.error(error);
-							process.exit(0);
 						});
+
 
 
 					});
@@ -274,10 +291,11 @@ export namespace DatabaseManager {
 		 * @param {number} eventId The ID of the event
 		 * @param {string} guildId the ID of the guild
 		 */
-		public async addEvent(event: ScheduleEvent, eventId: number, guildId: string) {
+		public async addEvent(event: ScheduleEvent, owner: Discord.User, eventId: number, guildId: string) {
 
 			//extract the date from the event, and parse to get a workable date string
 			const date = event.date.toISOString().split('.')[0];
+
 
 			const sql = `SELECT id FROM ${this.schedules.name}
 		WHERE guild_id = ${guildId};`;
@@ -285,10 +303,17 @@ export namespace DatabaseManager {
 			this.database!.query(sql)
 				.then((result) => {
 					var scheduleId: number = result![0].id;
-					this.database!.query(
-						`INSERT INTO ${this.events.name} (schedule_id, event_id, event_name, event_date)
-				VALUES (${scheduleId}, ${eventId}, '${event.name}', STR_TO_DATE('${date}','%Y-%m-%dT%H:%i:%s'));`
-					);
+
+
+					this.database!.query(`INSERT IGNORE INTO ${this.users.name} (user_id, username, discriminator)
+										 VALUES ('${owner.id}', '${owner.username}', '${owner.discriminator}')`).then((ownerExists) => {
+											 this.database!.query(
+												 `INSERT INTO ${this.events.name} (schedule_id, event_owner, event_id, event_name, event_date)
+												  VALUES (${scheduleId}, '${owner.id}', ${eventId}, '${event.name}', STR_TO_DATE('${date}','%Y-%m-%dT%H:%i:%s'));`
+											 );
+						});
+
+					
 				}).catch((error) => {
 					console.error(error);
 				});

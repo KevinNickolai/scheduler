@@ -1,4 +1,4 @@
-﻿const ScheduleEvent = require('../../classes/scheduleEvent.js');
+﻿const ScheduleEvent = require('../../classes/events/scheduleEvent.js');
 const Discord = require('discord.js');
 
 /**

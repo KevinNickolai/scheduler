@@ -21,24 +21,56 @@ module.exports = (client: SchedulerClient) => {
      * create a scheduling channel if not already existing, and then
 	 * create a mapping for each server to their own unique schedule.
 	 * */
-	client.channels.fetch('714249299382370389', true)
-		.then((result) => {
-			if (result.isText()) {
+	//client.channels.fetch('714249299382370389', true)
+	//	.then((result) => {
+	//		if (result.isText()) {
 
-				let cnl: Discord.TextChannel = result as Discord.TextChannel;
-				var schedulerChannel = result;
+				//let cnl: Discord.TextChannel = result as Discord.TextChannel;
+				//var schedulerChannel = result;
 
-				
-				//schedulerChannel.guildId = guild.id;
+				////schedulerChannel.guildId = guild.id;
 
-				client.scheduler.set(cnl.guild.id, new Schedule(cnl.id, client, cnl.guild.id));
+				//const newSchedule = new Schedule(cnl.id, client, cnl.guild.id);
+				//client.scheduler.set(cnl.guild.id, newSchedule);
 
-			}
-		});
+				///*
+				//* After proper connections, fill any schedules 
+				//* not already existant in the discord client
+				//*/
+				//client.scheduler.forEach((schedule, guildId) => {
+				//	client.database.setSchedule(schedule, guildId, client);
+				//});
 
-	//client.guilds.cache.flatMap<Discord.Guild>(async (guild) : Promise<Discord.Guild> => {
+	//		}
+	//	});
+
+	client.guilds.cache.flatMap<Discord.Guild>((guild, id, coll) => {
+		//console.log(guild.channels.cache.find((channel: Discord.GuildChannel) => channel.name === "events"));
+
+		let cnl = guild.channels.cache.find((channel: Discord.GuildChannel) => channel.name === schedulerChannelName);
+
+		if (typeof (cnl) === 'undefined') {
+			guild.channels.create(schedulerChannelName, { type: "text", }).then((channel) => {
+
+				const newSchedule = new Schedule(channel.id, client, id);
+				client.scheduler.set(id, newSchedule);
+
+				client.database.setSchedule(newSchedule, id, client);
+
+			});
+		}
+		else {
+
+			const newSchedule = new Schedule(cnl.id, client, id);
+			client.scheduler.set(id, newSchedule);
+
+			client.database.setSchedule(newSchedule, id, client);
+
+		}
 
 
+		return coll;
+	});
 	//	if (!schedulerChannel) {
 	//		schedulerChannel = await guild.channels.create(schedulerChannelName, { type: 'text' })
 	//			.then(function (result) {

@@ -9,6 +9,7 @@ export default class SchedulerClient extends Discord.Client {
 	public readonly database: DatabaseManager.DatabaseManager;
 	public readonly scheduler: Map<string, Schedule>;
 	public commands: Map<string, any>;
+	public shortcuts: Map<string, string>;
 
 	constructor() {
 		super();
@@ -16,5 +17,6 @@ export default class SchedulerClient extends Discord.Client {
 		this.database = new DatabaseManager.DatabaseManager();
 		this.scheduler = new Map <string, Schedule>();
 		this.commands = new Map<string, any>();
+		this.shortcuts = new Map<string, string>();
 	}
 }

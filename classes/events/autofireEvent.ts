@@ -1,5 +1,5 @@
 ﻿import { ScheduleEvent } from "./scheduleEvent";
-
+import * as Discord from "discord.js";
 /**
  * Class that describes a Schedule Event that will fire at a specific datetime
  * */
@@ -10,8 +10,8 @@ export class AutofireEvent extends ScheduleEvent {
 	 * @param {string} name the name of the event
 	 * @param {Date} date the date the event will fire
 	 */
-	constructor(name: string, date: Date) {
-		super(name, date);
+	constructor(owner: Discord.User, name: string, date: Date) {
+		super(owner, name, date);
 	}
 
 	/**

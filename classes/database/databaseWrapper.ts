@@ -1,5 +1,5 @@
 ﻿import * as mysql from "mysql";
-import * as configuration from "../../config"
+import * as configuration from "../../config";
 /*
 * class that wraps a mysql database into utilizing promises
 * class inspiration found here:

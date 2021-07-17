@@ -6,9 +6,12 @@
  * @param {string} time the time in string format
  * @param {string} am_pm the 12hour indicator of AM or PM
  */
-function parseDate(date, day, time, am_pm) {
+export function parseDate(date : Date, day: string, time: string, am_pm: string) {
 
 	const dayInt = parseInt(day);
+
+	console.log(dayInt);
+	console.log(day);
 
 	var pm = true;
 
@@ -39,10 +42,11 @@ function parseDate(date, day, time, am_pm) {
 		day = day.toLowerCase();
 
 		//difference in the day number
-		var diff;
+		var diff = 0;
 
 		switch (day) {
 
+			case 'tonight':
 			case 'today':
 				diff = 0;
 				break;
@@ -88,6 +92,7 @@ function parseDate(date, day, time, am_pm) {
 			case 'sat':
 				diff = 7 - dayOfWeek;
 				break;
+
 		}
 
 		date.setDate(date.getDate() + diff);
@@ -112,14 +117,14 @@ function parseDate(date, day, time, am_pm) {
 				return;
 			} else if (splitTime.length > 1) {
 
-				var hours = parseInt(splitTime.shift());
-				const minutes = parseInt(splitTime.shift());
-				const seconds = parseInt(splitTime.shift());
+				var hours = parseInt(splitTime.shift()!);
+				var minutes = parseInt(splitTime.shift()!);
+				var seconds = parseInt(splitTime.shift()!);
 
 				//AM/PM check
 				if (hours && am_pm) {
 
-					if (pm && hours != 12) {
+					if (pm && hours !== 12) {
 						hours += 12;
 					}
 
@@ -185,5 +190,3 @@ function parseDate(date, day, time, am_pm) {
 	return date;
 
 }
-
-module.exports = parseDate;

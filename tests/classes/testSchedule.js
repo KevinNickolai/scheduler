@@ -1,7 +1,7 @@
 ﻿const Discord = require('discord.js');
 
 const scheduleClass = require('../../classes/schedule.js');
-const autofireEventClass = require('../../classes/autofireEvent.js');
+const autofireEventClass = require('../../classes/events/autofireEvent.js');
 
 /**
  * Utility function that returns a basic event

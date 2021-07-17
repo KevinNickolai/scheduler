@@ -1,7 +1,8 @@
 import SchedulerClient from "./classes/SchedulerClient";
 import * as clientImport from "./client";
 import * as config from "./config";
-let client = clientImport.default;
+import * as client from "./client.js";
+
 main();
 
 /*
@@ -14,18 +15,20 @@ async function main() {
 	 * Verify the database has connection
 	 */
 	Promise.all([
-		client.database.Init(config.default.DBConfig),
-		client.login(config.botToken)
+		client.default.database.Init(config.default.DBConfig),
+		client.default.login(config.botToken)
 	])
 	.then(() => {
+
+		console.log(client.default.scheduler);
 
 		/*
 		* After proper connections, fill any schedules 
 		* not already existant in the discord client
 		*/
-		client.scheduler.forEach((schedule, guildId) => {
-			client.database.setSchedule(schedule, guildId, client);
-		});
+		//client.default.scheduler.forEach((schedule, guildId) => {
+		//	client.default.database.setSchedule(schedule, guildId, client.default);
+		//});
 
 		//forEach schedule, populate with events in the database
 		console.log('Initialized database and logged in!');

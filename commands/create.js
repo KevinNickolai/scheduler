@@ -1,12 +1,12 @@
-const eventCreator = require('../classes/scheduleEvent.js');
-const autofireCreator = require('../classes/autofireEvent.js');
+const eventCreator = require('../classes/events/scheduleEvent.js');
+const autofireCreator = require('../classes/events/autofireEvent.js');
 const parseDate = require('../classes/parseDate.js');
-
+const durationCreator = require("../classes/events/durationEvent.js");
 
 module.exports = {
 	name: 'create',
 	aliases: ['add', 'cmds', 'make', 'c'],
-	description: "Add an event to the schedule.",
+	description: "Add a default-typed event to the schedule.",
 	usage: "event-type event-name date time",
 	args: true,
 	serverUnique: true,
@@ -33,8 +33,23 @@ module.exports = {
 		const eventTime = args.shift();
 		const am_pm = args.shift();
 
-		const eventDate = parseDate(currentDate, eventDay, eventTime, am_pm);
+		try {
 
+		}
+		catch{
+
+		}
+
+		let eventDate = currentDate; 
+		if (eventDay === "now") {
+			eventDate.setMinutes(eventDate.getMinutes() + 5);
+		} else if (eventDay === "later") {
+			eventDate.setHours(eventDate.getHours() + 2);
+		} else {
+			eventDate = parseDate.parseDate(currentDate, eventDay, eventTime, am_pm);
+		}
+
+		
 		if (!eventDate) {
 			return message.reply(`Invalid event date given: ${eventDay}`);
 		}
@@ -43,9 +58,10 @@ module.exports = {
 		 * Create the event based on user input
 		 * TODO: add user customization for event type using args
 		 */
-		const autofire = new autofireCreator.AutofireEvent(eventName, eventDate);
+		const autofire = new autofireCreator.AutofireEvent(message.author, eventName, eventDate);
+		const duration = new durationCreator.DurationAutofireEvent(message.author, eventName, eventDate);
 
-		schedule.addEvent(autofire)
+		schedule.addEvent(duration)
 			.then((eventId) => {
 				//failed
 				if (eventId === -1) {
@@ -56,6 +72,7 @@ module.exports = {
 
 				message.reply(`Added event ${eventName} with ID ${eventId} to the schedule, ` +
 					`set for ${eventDate.toDateString()} at ${eventDate.toTimeString()}`);
+
 				//TODO: create the event, store in database
 			}).catch((error) => {
 				console.log(error);

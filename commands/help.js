@@ -8,7 +8,8 @@ module.exports = {
 		const data = [];
 
 		//client's commands to display for the help command
-		const { commands } = message.client;
+		const commands = message.client.commands;
+
 		const { prefix } = require('../config.js');
 
 		//if there are no arguments, we are doing a general help command
@@ -16,7 +17,15 @@ module.exports = {
 		if(!args.length){
 
 			data.push("List of commands:");
-			data.push(commands.map(command => command.name).join(', '));
+
+			let cmds = [];
+
+			for (var [key, val] of commands) {
+				cmds.push(val.name);
+			}
+			data.push(cmds.join(", "));
+
+			//data.push(commands.values().map(command => command.name).join(', '));
 			data.push(`\nUse \'${prefix}help <command name>\' for help on specific commands.`);
 
 			return message.author.send(data, { split: true})

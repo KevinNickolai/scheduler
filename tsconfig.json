@@ -1,25 +1,27 @@
 {
 	"$schema": "https://json.schemastore.org/tsconfig",
-	"display": "Node 14",
-
 	"compilerOptions": {
-		"lib": [ "es2020" ],
-		"module": "commonjs",
-		"target": "es2020",
-		"resolveJsonModule": true,
-		"strict": true,
+		"allowJs": true,
 		"esModuleInterop": true,
-		"skipLibCheck": true,
 		"forceConsistentCasingInFileNames": true,
+		"lib": [ "ES2020" ],
+		"module": "CommonJS",
+		"moduleResolution": "Node",
 		"outDir": "build",
-		"allowJs": true
+		"skipLibCheck": true,
+		"strict": true,
+		"target": "ES2020",
+		"types": [ "node" ]
 	},
-	"include": ["./*.ts", "./commands/*.js", "classes/database/*.ts", "classes/*.ts", "events/*.ts"],
+	"display": "Node 14",
 	"exclude": [
 		"node_modules",
 		"src",
 		"build",
 		"test/*",
-		"test"
-	]
+		"test",
+		"classes/d3timeImport.ts",
+		"classes/d3timeImport.js"
+	],
+	"include": [ "./*.ts", "./commands/*.js", "classes/database/*.ts", "classes/*.ts", "events/*.ts", "classes/schedule.ts", "classes/events/scheduleEvent.ts", "commands/types.ts", "classes/events/durationEvent.ts", "classes/events/Interfaces/IDurationEvent.ts", "commands/display.ts", "commands/invite.ts", "commands/shortcut.ts" ]
 }
