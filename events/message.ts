@@ -33,7 +33,7 @@ module.exports = (client : SchedulerClient, message: Discord.Message) => {
 			message.guild.roles.fetch(client.shortcuts.get(commandName)!)
 				.then((role: Discord.Role | null) => {
 
-					if (role === null) {
+					if (role === null || !role.members.find((usr: Discord.GuildMember) => usr.user.id === message.author.id)) {
 						return;
 					}
 
