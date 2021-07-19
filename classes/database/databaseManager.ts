@@ -66,7 +66,7 @@ export namespace DatabaseManager {
 			event_date DATETIME NOT NULL,
 			event_owner VARCHAR(18) NOT NULL,
 			PRIMARY KEY (id),
-			UNIQUE KEY unique_event (schedule_id,event_id),
+			UNIQUE KEY unique_event_idx (schedule_id,event_id),
 			KEY events_ibfk_2_idx (event_owner),
 			CONSTRAINT unique_event UNIQUE (schedule_id, event_id),
 			FOREIGN KEY (schedule_id)
@@ -488,14 +488,14 @@ export namespace DatabaseManager {
 						return that.createTable(that.schedules);
 					})
 					.then((result) => {
-						console.log(`Created Table ${that.schedules.name}!`);
-
-						return that.createTable(that.events);
-					})
-					.then((result) => {
 						console.log(`Created Table ${that.events.name}!`);
 
 						return that.createTable(that.users);
+					})
+					.then((result) => {
+						console.log(`Created Table ${that.schedules.name}!`);
+
+						return that.createTable(that.events);
 					})
 					.then((result) => {
 						console.log(`Created Table ${that.users.name}!`);

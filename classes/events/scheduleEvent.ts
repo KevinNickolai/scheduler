@@ -15,7 +15,7 @@ export abstract class ScheduleEvent {
 	}
 
 	public readonly name: string;
-	public readonly date: Date;
+	public date: Date;
 	public readonly users: Map<string, Discord.User>;
 
 	public readonly owner: Discord.User;
@@ -67,6 +67,18 @@ export abstract class ScheduleEvent {
 		}
 	}
 
+	/**
+	 * Modify the date of the event taking place
+	 * @param date the new date of the event 
+	 */
+	public modifyDate(date: Date) {
+		let now = new Date();
+
+		if (+date > +now) {
+			this.date = date;
+		}
+
+	}
 
 	/**
 	 * readd a user to the event

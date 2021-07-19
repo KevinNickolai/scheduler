@@ -23,5 +23,5 @@
 		"classes/d3timeImport.ts",
 		"classes/d3timeImport.js"
 	],
-	"include": [ "./*.ts", "./commands/*.js", "classes/database/*.ts", "classes/*.ts", "events/*.ts", "classes/schedule.ts", "classes/events/scheduleEvent.ts", "commands/types.ts", "classes/events/durationEvent.ts", "classes/events/Interfaces/IDurationEvent.ts", "commands/display.ts", "commands/invite.ts", "commands/shortcut.ts" ]
+	"include": [ "./*.ts", "./commands/*.js", "classes/database/*.ts", "classes/*.ts", "events/*.ts", "classes/schedule.ts", "classes/events/scheduleEvent.ts", "commands/types.ts", "classes/events/durationEvent.ts", "classes/events/Interfaces/IDurationEvent.ts", "commands/display.ts", "commands/invite.ts", "commands/shortcut.ts", "commands/edit.ts", "commands/leave.ts" ]
 }

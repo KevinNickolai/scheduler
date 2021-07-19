@@ -6,7 +6,7 @@
  * @param {string} time the time in string format
  * @param {string} am_pm the 12hour indicator of AM or PM
  */
-export function parseDate(date : Date, day: string, time: string, am_pm: string) {
+export function parseDate(date : Date, day: string, time: string, am_pm: string) : Date {
 
 	const dayInt = parseInt(day);
 
@@ -99,7 +99,7 @@ export function parseDate(date : Date, day: string, time: string, am_pm: string)
 
 	} else if (dayInt < 0 || dayInt > 30) {
 		console.log(`Invalid date ${dayInt} given`);
-		return;
+		return date;
 	} else {
 		date.setDate(date.getDate() + dayInt);
 	}
@@ -114,7 +114,7 @@ export function parseDate(date : Date, day: string, time: string, am_pm: string)
 
 			if (splitTime.length > 3) {
 				console.log(`Invalid time ${time} given.`);
-				return;
+				return date;
 			} else if (splitTime.length > 1) {
 
 				var hours = parseInt(splitTime.shift()!);
@@ -181,7 +181,7 @@ export function parseDate(date : Date, day: string, time: string, am_pm: string)
 
 		} else if (timeInt < 0 || timeInt > 2359) {
 			console.log(`Invalid time ${timeInt} given.`);
-			return;
+			return date;
 		} else {
 
 		}
